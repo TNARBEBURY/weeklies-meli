@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Seguimiento · Marzo 2026 · Bian</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--blue:#009EE3;--dark:#1C2B59;--yellow:#FFE600;--green:#00A650;--red:#F23D4F;--orange:#FF7733;--gray:#8492A6;--bg:#F5F7FA;--text:#1a2640}
+body{font-family:"Segoe UI",system-ui,sans-serif;background:var(--dark);overflow:hidden;height:100vh;width:100vw;color:var(--text)}
+.slide{display:none;position:absolute;inset:0;padding:36px 56px;flex-direction:column;animation:fadeUp .35s ease both}
+.slide.active{display:flex}
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+#pb{position:fixed;top:0;left:0;height:3px;background:var(--blue);transition:width .3s;z-index:999}
+.dots{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);display:flex;gap:8px;z-index:999}
+.dot{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.3);cursor:pointer;transition:all .2s}
+.dot.on{background:#fff;transform:scale(1.35)}
+.navbtns{position:fixed;bottom:16px;right:28px;display:flex;gap:10px;align-items:center;z-index:999}
+.nbtn{width:40px;height:40px;border-radius:50%;border:none;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.15);color:#fff;backdrop-filter:blur(8px);transition:all .2s}
+.nbtn:hover{background:rgba(255,255,255,.3);transform:scale(1.08)}
+.nbtn:disabled{opacity:.25;cursor:not-allowed;transform:none}
+.ncnt{font-size:12px;color:rgba(255,255,255,.6);font-weight:600}
+.kbdhint{position:fixed;bottom:26px;left:28px;font-size:11px;color:rgba(255,255,255,.3);z-index:999}
+.tag{font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--blue);margin-bottom:6px}
+.tag-w{color:rgba(255,255,255,.5)}
+.h1{font-size:28px;font-weight:800;color:var(--text)}
+.h1-w{color:#fff}
+.sheader{margin-bottom:22px;flex-shrink:0}
+.card{background:rgba(255,255,255,0.6);border-radius:12px;padding:18px 20px;box-shadow:0 2px 12px rgba(0,0,0,.06)}
+.tbl{width:100%;border-collapse:collapse;font-size:13px}
+.tbl th{background:rgba(180,200,255,0.4);color:var(--gray);font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;padding:9px 12px;text-align:left;border-bottom:2px solid #DDE6F8}
+.tbl td{padding:10px 12px;border-bottom:1px solid #EEF3FF}
+.tbl tr:last-child td{border-bottom:none}
+.tbl tr:hover td{background:rgba(255,255,255,0.5)}
+.b{display:inline-block;padding:3px 10px;border-radius:12px;font-size:11.5px;font-weight:700}
+.bg{background:#E6F7EE;color:var(--green)}.br{background:#FFF0F2;color:var(--red)}
+.bo{background:#FFF4E6;color:var(--orange)}.bb{background:#E6F4FF;color:var(--blue)}
+#s1{background:linear-gradient(135deg,#009EE3 0%,#1C2B59 55%,#080d1e 100%);justify-content:center;align-items:flex-start;padding:80px;color:#fff}
+.logo{position:fixed;top:18px;right:24px;z-index:998}
+.ctag{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);color:#fff;padding:5px 16px;border-radius:20px;font-size:11px;letter-spacing:2.5px;text-transform:uppercase;margin-bottom:22px;display:inline-block}
+.ctitle{font-size:50px;font-weight:900;line-height:1.08;margin-bottom:14px}
+.ctitle span{color:var(--yellow)}
+.csub{font-size:18px;opacity:.7;margin-bottom:44px}
+.cstats{display:flex;gap:44px}
+.cstat{border-left:3px solid rgba(255,255,255,.3);padding-left:18px}
+.cstat-v{font-size:30px;font-weight:800}.cstat-l{font-size:12px;opacity:.6;margin-top:2px}
+.metgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px;flex-shrink:0}
+.mcard{background:rgba(255,255,255,0.6);border-radius:12px;padding:16px 18px;box-shadow:0 2px 8px rgba(0,0,0,.05);border-top:3px solid var(--blue)}
+.mv{font-size:24px;font-weight:800;line-height:1.1}.ml{font-size:11.5px;color:var(--gray);margin-top:4px;font-weight:500}.md{font-size:12px;font-weight:600;margin-top:5px}
+.chartbox{position:relative;flex:1;min-height:0}
+.pipcols{display:grid;grid-template-columns:1fr 1.4fr;gap:20px;flex:1;min-height:0}
+.flist{display:flex;flex-direction:column;gap:8px}
+.fi{display:flex;align-items:center;gap:12px;padding:10px 14px;background:rgba(255,255,255,0.6);border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.04)}
+.fdot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.flbl{font-size:13px;font-weight:600;flex:1}.fcnt{font-size:22px;font-weight:800}.fusd{font-size:11px;color:var(--gray)}
+.pipcols-right{display:flex;flex-direction:column;gap:14px;min-height:0}
+.acccols{display:grid;grid-template-columns:1.2fr 1fr;gap:20px;flex:1;min-height:0}
+.accright{display:flex;flex-direction:column;gap:10px}
+.acard{background:rgba(255,255,255,0.6);border-radius:10px;padding:14px 16px;box-shadow:0 2px 8px rgba(0,0,0,.05)}
+.divgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px;flex:1}
+.dcard{background:rgba(255,255,255,0.6);border-radius:12px;padding:16px 18px;box-shadow:0 2px 8px rgba(0,0,0,.05);border-left:4px solid;display:flex;flex-direction:column;gap:5px}
+.dcard.pos{border-color:var(--green)}.dcard.neg{border-color:var(--red)}.dcard.neu{border-color:var(--orange)}
+.dhunter{font-size:11px;color:var(--gray);text-transform:uppercase;letter-spacing:.5px}
+.dtitle{font-size:14px;font-weight:700}.dbig{font-size:22px;font-weight:900;margin-top:4px}
+.ddet{font-size:12px;color:var(--gray);line-height:1.4}
+.ablk{border-radius:10px;padding:12px 16px;margin-bottom:12px;flex-shrink:0}
+.ablk-red{background:rgba(255,255,255,0.6);border:1px solid #FFCDD4}
+.ablk-yel{background:rgba(255,255,255,0.6);border:1px solid #FFE082}
+.ablk-grn{background:rgba(255,255,255,0.6);border:1px solid #A7EFC5}
+.ablk-ttl{font-size:13px;font-weight:700;margin-bottom:8px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}
+.chip{background:rgba(255,255,255,0.6);padding:5px 12px;border-radius:6px;border:1px solid #DDE6F8;font-size:12px}
+#s8{background:linear-gradient(135deg,#1C2B59 0%,#08111f 100%)}
+.nsgrid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;flex:1}
+.nscard{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:18px}
+.nsnum{font-size:34px;font-weight:900;color:var(--blue);opacity:.55;line-height:1}
+.nstit{font-size:15px;font-weight:700;color:#fff;margin:8px 0 6px}
+.nsdesc{font-size:12.5px;color:rgba(255,255,255,.58);line-height:1.5}
+</style>
+</head>
+<body>
+<div id="pb"></div>
+<div class="logo"><img src="C:/Users/tomnarbebury/Downloads/LOGO MP FONDO AMARILLO.jpg" alt="MP" style="height:44px;border-radius:8px"/></div>
+
+<!-- S1 COVER -->
+<div class="slide active" id="s1">
+  <div class="ctag">Hunting Instore · Point &amp; QR</div>
+  <div class="ctitle">Seguimiento<br>Comercial<br><span>Marzo 2026</span></div>
+  <div class="csub">Equipo de Bian · 7 Hunters · Semana 2</div>
+  <div class="cstats">
+    <div class="cstat"><div class="cstat-v">$8.5M</div><div class="cstat-l">Proyección lineal al cierre</div></div>
+    <div class="cstat"><div class="cstat-v">$3.0M</div><div class="cstat-l">Objetivo del mes</div></div>
+    <div class="cstat" style="border-color:rgba(0,166,80,.7)">
+      <div class="cstat-v" style="color:#4dff9e">+186.4%</div>
+      <div class="cstat-l">vs Objetivo (Lineal)</div>
+    </div>
+  </div>
+</div>
+
+<!-- S2 EQUIPO -->
+<div class="slide" id="s2" style="background:#FFE600">
+  <div class="sheader"><div class="tag">Marzo 2026 · Semana 2</div><div class="h1">¿Cómo está el equipo?</div></div>
+  <div class="metgrid">
+    <div class="mcard" style="border-top-color:var(--blue)"><div class="mv">$3.0M</div><div class="ml">TPV Current</div><div class="md" style="color:var(--blue)">Cuentas mes −1 y −2</div></div>
+    <div class="mcard" style="border-top-color:var(--green)"><div class="mv">$1.6M</div><div class="ml">TPV New estimado</div><div class="md" style="color:var(--green)">Cierres proyectados para Marzo</div></div>
+    <div class="mcard" style="border-top-color:var(--dark)"><div class="mv">$8.5M</div><div class="ml">Proyección lineal al cierre</div><div class="md" style="color:var(--gray)">Al ritmo actual de Marzo</div></div>
+    <div class="mcard" style="border-top-color:var(--green)"><div class="mv" style="color:var(--green)">+186.4%</div><div class="ml">vs Objetivo ($3.0M)</div><div class="md" style="color:var(--green)">Gap positivo $5.5M</div></div>
+  </div>
+  <div class="card" style="flex:1;overflow:auto">
+    <table class="tbl">
+      <thead><tr><th>Hunter</th><th>Current</th><th>New</th><th>Total</th><th>Lineal</th><th>Objetivo</th><th>% vs Obj</th><th>Estado</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><strong>Federico Perez</strong></td>
+          <td>$320,705</td>
+          <td style="color:var(--green);font-weight:700">$565,000</td>
+          <td><strong>$885,705</strong></td>
+          <td><strong style="color:var(--blue)">$1,305,088</strong></td>
+          <td>$233,333</td>
+          <td><strong style="color:var(--green)">+459%</strong></td>
+          <td><span class="b bg">🟢 En camino</span></td>
+        </tr>
+        <tr>
+          <td><strong>Martha Vautier</strong></td>
+          <td>$1,854,171</td>
+          <td style="color:var(--green);font-weight:700">$575,000</td>
+          <td><strong>$2,429,171</strong></td>
+          <td><strong style="color:var(--blue)">$4,853,856</strong></td>
+          <td>$933,333</td>
+          <td><strong style="color:var(--green)">+420%</strong></td>
+          <td><span class="b bg">🟢 En camino</span></td>
+        </tr>
+        <tr>
+          <td><strong>Carolina Cruz</strong></td>
+          <td>$451,065</td>
+          <td style="color:var(--green);font-weight:700"><span style="color:var(--gray)">—</span></td>
+          <td><strong>$451,065</strong></td>
+          <td><strong style="color:var(--blue)">$1,040,919</strong></td>
+          <td>$466,667</td>
+          <td><strong style="color:var(--green)">+123%</strong></td>
+          <td><span class="b bg">🟢 En camino</span></td>
+        </tr>
+        <tr>
+          <td><strong>Santiago Leaniz</strong></td>
+          <td>$207,522</td>
+          <td style="color:var(--green);font-weight:700">$150,000</td>
+          <td><strong>$357,522</strong></td>
+          <td><strong style="color:var(--blue)">$628,897</strong></td>
+          <td>$666,667</td>
+          <td><strong style="color:var(--orange)">-6%</strong></td>
+          <td><span class="b bo">🟡 En seguimiento</span></td>
+        </tr>
+        <tr>
+          <td><strong>Tomas Melis</strong></td>
+          <td>$170,672</td>
+          <td style="color:var(--green);font-weight:700">$125,000</td>
+          <td><strong>$295,672</strong></td>
+          <td><strong style="color:var(--blue)">$518,860</strong></td>
+          <td>$666,667</td>
+          <td><strong style="color:var(--orange)">-22%</strong></td>
+          <td><span class="b bo">🟡 En seguimiento</span></td>
+        </tr>
+        <tr>
+          <td><strong>Willem Goodridge</strong></td>
+          <td>—</td>
+          <td style="color:var(--green);font-weight:700"><span style="color:var(--gray)">—</span></td>
+          <td><strong>$0</strong></td>
+          <td><strong style="color:var(--blue)">—</strong></td>
+          <td><span style="color:var(--gray)">—</span></td>
+          <td><strong style="color:var(--gray)">—</strong></td>
+          <td><span class="b bb">🔵 Sin objetivo</span></td>
+        </tr>
+        <tr>
+          <td><strong>Camila Paletta</strong></td>
+          <td>—</td>
+          <td style="color:var(--green);font-weight:700">$150,000</td>
+          <td><strong>$150,000</strong></td>
+          <td><strong style="color:var(--blue)">$150,000</strong></td>
+          <td><span style="color:var(--gray)">—</span></td>
+          <td><strong style="color:var(--gray)">—</strong></td>
+          <td><span class="b bb">🔵 Sin objetivo</span></td>
+        </tr>
+        <tr style="background:rgba(180,200,255,0.4)">
+          <td><strong>TOTAL EQUIPO</strong></td>
+          <td><strong>$3,004,135</strong></td>
+          <td><strong>$1,565,000</strong></td>
+          <td><strong>$4,569,135</strong></td>
+          <td><strong style="color:var(--blue)">$8,497,619</strong></td>
+          <td><strong>$2,966,667</strong></td>
+          <td><strong style="color:var(--green)">+186%</strong></td>
+          <td><span class='b bg'>🟢 Por encima</span></td>
+        </tr></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- S3 SALIDAS CURRENT -->
+<div class="slide" id="s3" style="background:#FFE600">
+  <div class="sheader"><div class="tag">Rotacion de Current · Abril 2026</div><div class="h1">Cuentas que salen del Current en Abril</div></div>
+  <div class="metgrid" style="grid-template-columns:repeat(2,1fr)">
+    <div class="mcard" style="border-top-color:var(--red)"><div class="mv">8</div><div class="ml">Cuentas salientes</div><div class="md" style="color:var(--red)">Dejan de aportar al Current en Abril</div></div>
+    <div class="mcard" style="border-top-color:var(--red)"><div class="mv" style="color:var(--red)">$1,323,451</div><div class="ml">TPV proyectado Marzo que se pierde</div><div class="md" style="color:var(--red)">Impacto estimado en Abril</div></div>
+  </div>
+  <div class="card" style="flex:1;overflow:auto">
+    <table class="tbl">
+      <thead><tr><th>Cuenta</th><th>Hunter</th><th>Proyectado Marzo (se pierde en Abril)</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><strong>Carnes argentinas Neuquen</strong></td>
+          <td>Martha</td>
+          <td style="text-align:right;color:var(--red);font-weight:700">$602,446</td>
+        </tr>
+        <tr>
+          <td><strong>MaxiBrant</strong></td>
+          <td>Martha</td>
+          <td style="text-align:right;color:var(--red);font-weight:700">$258,345</td>
+        </tr>
+        <tr>
+          <td><strong>supermercado san jose</strong></td>
+          <td>Tomas</td>
+          <td style="text-align:right;color:var(--red);font-weight:700">$210,827</td>
+        </tr>
+        <tr>
+          <td><strong>Playa Bacana</strong></td>
+          <td>Santiago</td>
+          <td style="text-align:right;color:var(--red);font-weight:700">$101,046</td>
+        </tr>
+        <tr>
+          <td><strong>Frigorifico Los Soles</strong></td>
+          <td>Martha</td>
+          <td style="text-align:right;color:var(--red);font-weight:700">$78,928</td>
+        </tr>
+        <tr>
+          <td><strong>Lemaya Distribuciones</strong></td>
+          <td>Santiago</td>
+          <td style="text-align:right;color:var(--red);font-weight:700">$71,362</td>
+        </tr>
+        <tr>
+          <td><strong>Blue Carpet Beach SA</strong></td>
+          <td>Tomas</td>
+          <td style="text-align:right;color:var(--red);font-weight:700">$497</td>
+        </tr>
+        <tr>
+          <td><strong>VERDULERIA DE LA TIERRA</strong></td>
+          <td>Carolina</td>
+          <td style="text-align:right;color:var(--red);font-weight:700">—</td>
+        </tr></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- S4 SALIDAS POR HUNTER -->
+<div class="slide" id="s4" style="background:#FFE600">
+  <div class="sheader"><div class="tag">Rotacion de Current · Abril 2026</div><div class="h1">Impacto de salidas del Current por Hunter</div></div>
+  <div class="card" style="flex:1;overflow:auto">
+    <table class="tbl">
+      <thead><tr><th>Hunter</th><th style="text-align:center">Cuentas</th><th>Proyectado Marzo (impacto en Abril)</th><th style="width:140px">Peso relativo</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><strong>Martha Vautier</strong></td>
+          <td style="text-align:center">3</td>
+          <td style="text-align:right;color:var(--red);font-weight:700">$939,719</td>
+          <td style="width:140px"><div style="background:#eee;border-radius:4px;height:10px"><div style="background:var(--red);border-radius:4px;height:10px;width:71%"></div></div></td>
+        </tr>
+        <tr>
+          <td><strong>Tomas Melis</strong></td>
+          <td style="text-align:center">2</td>
+          <td style="text-align:right;color:var(--red);font-weight:700">$211,324</td>
+          <td style="width:140px"><div style="background:#eee;border-radius:4px;height:10px"><div style="background:var(--red);border-radius:4px;height:10px;width:15%"></div></div></td>
+        </tr>
+        <tr>
+          <td><strong>Santiago Leaniz</strong></td>
+          <td style="text-align:center">2</td>
+          <td style="text-align:right;color:var(--red);font-weight:700">$172,408</td>
+          <td style="width:140px"><div style="background:#eee;border-radius:4px;height:10px"><div style="background:var(--red);border-radius:4px;height:10px;width:13%"></div></div></td>
+        </tr>
+        <tr>
+          <td><strong>Carolina Cruz</strong></td>
+          <td style="text-align:center">1</td>
+          <td style="text-align:right;color:var(--red);font-weight:700">—</td>
+          <td style="width:140px"><div style="background:#eee;border-radius:4px;height:10px"><div style="background:var(--red);border-radius:4px;height:10px;width:0%"></div></div></td>
+        </tr></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- S5 CHART -->
+<div class="slide" id="s5" style="background:#FFE600">
+  <div class="sheader"><div class="tag">Performance · Marzo 2026</div><div class="h1">Proyección Lineal vs Objetivo por Hunter</div></div>
+  <div class="chartbox"><canvas id="cPerf"></canvas></div>
+</div>
+
+<!-- S6 PIPELINE -->
+<div class="slide" id="s6" style="background:#FFE600">
+  <div class="sheader"><div class="tag">Forecast Anual · Pipeline</div><div class="h1">Estado del pipeline — 91 cuentas</div></div>
+  <div class="pipcols">
+    <div class="flist">
+      <div class="fi"><div class="fdot" style="background:#00A650"></div>
+      <div class="flbl">Cerrada Ganada</div>
+      <div><div class="fcnt" style="color:#00A650">28</div><div class="fusd">cuentas</div></div></div>
+      <div class="fi"><div class="fdot" style="background:#009EE3"></div>
+      <div class="flbl">Propuesta Enviada</div>
+      <div><div class="fcnt" style="color:#009EE3">21</div><div class="fusd">cuentas</div></div></div>
+      <div class="fi"><div class="fdot" style="background:#7B68EE"></div>
+      <div class="flbl">Interesado</div>
+      <div><div class="fcnt" style="color:#7B68EE">24</div><div class="fusd">cuentas</div></div></div>
+      <div class="fi"><div class="fdot" style="background:#FF7733"></div>
+      <div class="flbl">Configuración</div>
+      <div><div class="fcnt" style="color:#FF7733">10</div><div class="fusd">cuentas</div></div></div>
+      <div class="fi"><div class="fdot" style="background:#FFB300"></div>
+      <div class="flbl">Roll Out</div>
+      <div><div class="fcnt" style="color:#FFB300">4</div><div class="fusd">cuentas</div></div></div>
+      <div class="fi"><div class="fdot" style="background:#F23D4F"></div>
+      <div class="flbl">Cerrada Perdida</div>
+      <div><div class="fcnt" style="color:#F23D4F">4</div><div class="fusd">cuentas</div></div></div></div>
+    <div class="pipcols-right">
+      <div class="card" style="flex:1;min-height:0;display:flex;flex-direction:column">
+        <div style="font-size:12px;font-weight:700;color:var(--gray);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px">Distribución del pipeline</div>
+        <div class="chartbox" style="flex:1"><canvas id="cPipe"></canvas></div>
+      </div>
+      <div class="card" style="padding:14px 16px">
+        <div style="font-size:12px;font-weight:700;color:var(--gray);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px">TPV potencial en pipeline activo</div>
+        <div style="display:grid;grid-template-columns:1fr auto;gap:4px 16px;font-size:12.5px;align-items:center"><span>Federico Perez</span><span style="font-weight:800;color:var(--dark)">$6.4M</span><span>Carolina Cruz</span><span style="font-weight:800;color:var(--dark)">$3.5M</span><span>Tomas Melis</span><span style="font-weight:800;color:var(--dark)">$3.3M</span><span>Camila Paletta</span><span style="font-weight:800;color:var(--dark)">$3.2M</span><span>Santiago Leaniz</span><span style="font-weight:800;color:var(--dark)">$3.1M</span><span>Martha Vautier</span><span style="font-weight:800;color:var(--dark)">$2.6M</span><span>Willem Goodridge</span><span style="font-weight:800;color:var(--dark)">$1.6M</span><span>Mariano Maidana</span><span style="font-weight:800;color:var(--dark)">$1.1M</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- S7 SALESFORCE RESUMEN -->
+<div class="slide" id="s7" style="background:#FFE600">
+  <div class="sheader"><div class="tag">Salesforce · Pipeline activo</div><div class="h1">Resumen de oportunidades por Hunter</div></div>
+  <div class="metgrid" style="grid-template-columns:repeat(4,1fr)">
+    <div class="mcard" style="border-top-color:var(--blue)"><div class="mv">147</div><div class="ml">Oportunidades totales</div><div class="md">en Salesforce</div></div>
+    <div class="mcard" style="border-top-color:#009EE3"><div class="mv">12</div><div class="ml">Propuesta Enviada</div></div>
+    <div class="mcard" style="border-top-color:#7B68EE"><div class="mv">93</div><div class="ml">Interesado</div></div>
+    <div class="mcard" style="border-top-color:#FF7733"><div class="mv">12</div><div class="ml">Configuración / Roll Out</div></div>
+  </div>
+  <div class="card" style="flex:1;overflow:auto">
+    <table class="tbl">
+      <thead><tr><th>Hunter</th><th style="text-align:center">Total</th><th style="text-align:center">QR</th><th style="text-align:center">Point</th><th>Distribución por etapa</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><strong>Martha Vautier</strong></td>
+          <td style="text-align:center;font-weight:700">32</td>
+          <td style="text-align:center;color:#009EE3;font-weight:700">18</td>
+          <td style="text-align:center;color:#FF7733;font-weight:700">14</td>
+          <td><span style="background:#7B68EE;color:#fff;border-radius:4px;padding:1px 7px;font-size:11px;margin-right:4px">Interesado 16</span><span style="background:#009EE3;color:#fff;border-radius:4px;padding:1px 7px;font-size:11px;margin-right:4px">Propuesta Enviada 8</span><span style="background:#00A650;color:#fff;border-radius:4px;padding:1px 7px;font-size:11px;margin-right:4px">Cerrada Ganada 5</span><span style="background:#FF7733;color:#fff;border-radius:4px;padding:1px 7px;font-size:11px;margin-right:4px">Configuración 2</span><span style="background:#F23D4F;color:#fff;border-radius:4px;padding:1px 7px;font-size:11px;margin-right:4px">Cerrada Perdida 1</span></td>
+        </tr>
+        <tr>
+          <td><strong>Carolina Cruz</strong></td>
+          <td style="text-align:center;font-weight:700">14</td>
+          <td style="text-align:center;color:#009EE3;font-weight:700">7</td>
+          <td style="text-align:center;color:#FF7733;font-weight:700">7</td>
+          <td><span style="background:#7B68EE;color:#fff;border-radius:4px;padding:1px 7px;font-size:11px;margin-right:4px">Interesado 8</span><span style="background:#00A650;color:#fff;border-radius:4px;padding:1px 7px;font-size:11px;margin-right:4px">Cerrada Ganada 4</span><span style="background:#FF7733;color:#fff;border-radius:4px;padding:1px 7px;font-size:11px;margin-right:4px">Configuración 2</span></td>
+        </tr>
+        <tr>
+          <td><strong>Tomas Melis</strong></td>
+          <td style="text-align:center;font-weight:700">27</td>
+          <td style="text-align:center;color:#009EE3;font-weight:700">13</td>
+          <td style="text-align:center;color:#FF7733;font-weight:700">14</td>
+          <td><span style="background:#7B68EE;color:#fff;border-radius:4px;padding:1px 7px;font-size:11px;margin-right:4px">Interesado 25</span><span style="background:#F23D4F;color:#fff;border-radius:4px;padding:1px 7px;font-size:11px;margin-right:4px">Cerrada Perdida 2</span></td>
+        </tr>
+        <tr>
+          <td><strong>Santiago Leaniz</strong></td>
+          <td style="text-align:center;font-weight:700">36</td>
+          <td style="text-align:center;color:#009EE3;font-weight:700">18</td>
+          <td style="text-align:center;color:#FF7733;font-weight:700">19</td>
+          <td><span style="background:#7B68EE;color:#fff;border-radius:4px;padding:1px 7px;font-size:11px;margin-right:4px">Interesado 28</span><span style="background:#00A650;color:#fff;border-radius:4px;padding:1px 7px;font-size:11px;margin-right:4px">Cerrada Ganada 6</span><span style="background:#FF7733;color:#fff;border-radius:4px;padding:1px 7px;font-size:11px;margin-right:4px">Configuración 2</span></td>
+        </tr>
+        <tr>
+          <td><strong>Federico Perez</strong></td>
+          <td style="text-align:center;font-weight:700">16</td>
+          <td style="text-align:center;color:#009EE3;font-weight:700">8</td>
+          <td style="text-align:center;color:#FF7733;font-weight:700">8</td>
+          <td><span style="background:#00A650;color:#fff;border-radius:4px;padding:1px 7px;font-size:11px;margin-right:4px">Cerrada Ganada 8</span><span style="background:#F23D4F;color:#fff;border-radius:4px;padding:1px 7px;font-size:11px;margin-right:4px">Cerrada Perdida 2</span><span style="background:#FF7733;color:#fff;border-radius:4px;padding:1px 7px;font-size:11px;margin-right:4px">Configuración 2</span><span style="background:#009EE3;color:#fff;border-radius:4px;padding:1px 7px;font-size:11px;margin-right:4px">Propuesta Enviada 2</span><span style="background:#7B68EE;color:#fff;border-radius:4px;padding:1px 7px;font-size:11px;margin-right:4px">Interesado 2</span></td>
+        </tr>
+        <tr>
+          <td><strong>Willem Goodridge</strong></td>
+          <td style="text-align:center;font-weight:700">16</td>
+          <td style="text-align:center;color:#009EE3;font-weight:700">7</td>
+          <td style="text-align:center;color:#FF7733;font-weight:700">9</td>
+          <td><span style="background:#7B68EE;color:#fff;border-radius:4px;padding:1px 7px;font-size:11px;margin-right:4px">Interesado 10</span><span style="background:#FF7733;color:#fff;border-radius:4px;padding:1px 7px;font-size:11px;margin-right:4px">Configuración 2</span><span style="background:#009EE3;color:#fff;border-radius:4px;padding:1px 7px;font-size:11px;margin-right:4px">Propuesta Enviada 2</span><span style="background:#00A650;color:#fff;border-radius:4px;padding:1px 7px;font-size:11px;margin-right:4px">Cerrada Ganada 2</span></td>
+        </tr>
+        <tr>
+          <td><strong>Camila Paletta</strong></td>
+          <td style="text-align:center;font-weight:700">6</td>
+          <td style="text-align:center;color:#009EE3;font-weight:700">3</td>
+          <td style="text-align:center;color:#FF7733;font-weight:700">3</td>
+          <td><span style="background:#7B68EE;color:#fff;border-radius:4px;padding:1px 7px;font-size:11px;margin-right:4px">Interesado 4</span><span style="background:#FF7733;color:#fff;border-radius:4px;padding:1px 7px;font-size:11px;margin-right:4px">Configuración 2</span></td>
+        </tr></tbody>
+    </table>
+  </div>
+</div>
+
+
+<div class="slide" id="s8" style="background:#FFE600">
+  <div class="sheader"><div class="tag">Salesforce · Pipeline por Hunter</div><div class="h1">Martha Vautier · Carolina Cruz</div></div>
+  <div style="flex:1;display:flex;gap:16px;min-height:0;overflow:hidden">
+        <div style="flex:1;display:flex;flex-direction:column;gap:8px;min-width:0">
+          <div style="font-size:15px;font-weight:900;color:var(--dark)">Martha Vautier</div>
+          <div style="display:flex;gap:12px;font-size:12px;flex-wrap:wrap">
+            <span><strong>32</strong> oportunidades</span>
+            <span style="color:#009EE3"><strong>18</strong> QR</span>
+            <span style="color:#FF7733"><strong>14</strong> Point</span>
+            <span style="color:var(--green);font-weight:700"><strong>8</strong> creadas en Marzo</span>
+          </div>
+          <div style="flex:1;overflow:auto">
+            <table class="tbl" style="font-size:11.5px">
+              <thead><tr><th>Cuenta</th><th>Producto</th><th>Etapa</th><th style="text-align:center">Días</th></tr></thead>
+              <tbody><tr><td><strong>Blanco Amor</strong></td><td>Point</td><td><span style="color:#009EE3;font-weight:700">Propuesta Enviada</span></td><td style="text-align:center;color:var(--red);font-weight:700">71d</td></tr><tr><td><strong>Blanco Amor</strong></td><td>QR</td><td><span style="color:#009EE3;font-weight:700">Propuesta Enviada</span></td><td style="text-align:center;color:var(--red);font-weight:700">71d</td></tr><tr><td><strong>Calzados Salamone.</strong></td><td>Point</td><td><span style="color:#009EE3;font-weight:700">Propuesta Enviada</span></td><td style="text-align:center;color:#FF7733;font-weight:700">52d</td></tr><tr><td><strong>Calzados Salamone.</strong></td><td>QR</td><td><span style="color:#009EE3;font-weight:700">Propuesta Enviada</span></td><td style="text-align:center;color:#FF7733;font-weight:700">52d</td></tr><tr><td><strong>Carnes Viomar</strong></td><td>QR</td><td><span style="color:#009EE3;font-weight:700">Propuesta Enviada</span></td><td style="text-align:center;color:#FF7733;font-weight:700">45d</td></tr><tr><td><strong>Carnes Viomar</strong></td><td>Point</td><td><span style="color:#009EE3;font-weight:700">Propuesta Enviada</span></td><td style="text-align:center;color:#FF7733;font-weight:700">45d</td></tr><tr><td><strong>Vaypol Casa de Deportes</strong></td><td>Point</td><td><span style="color:#009EE3;font-weight:700">Propuesta Enviada</span></td><td style="text-align:center;color:#FF7733;font-weight:700">31d</td></tr><tr><td><strong>Vaypol Casa de Deportes</strong></td><td>QR</td><td><span style="color:#009EE3;font-weight:700">Propuesta Enviada</span></td><td style="text-align:center;color:#FF7733;font-weight:700">31d</td></tr><tr><td><strong>Ruta 18</strong></td><td>QR</td><td><span style="color:#7B68EE;font-weight:700">Interesado</span></td><td style="text-align:center;color:var(--red);font-weight:700">91d</td></tr><tr><td><strong>Ruta 14</strong></td><td>QR</td><td><span style="color:#7B68EE;font-weight:700">Interesado</span></td><td style="text-align:center;color:var(--red);font-weight:700">87d</td></tr><tr><td><strong>Cerutti Deportes.</strong></td><td>Point</td><td><span style="color:#7B68EE;font-weight:700">Interesado</span></td><td style="text-align:center;color:var(--red);font-weight:700">81d</td></tr><tr><td><strong>Cerutti Deportes.</strong></td><td>QR</td><td><span style="color:#7B68EE;font-weight:700">Interesado</span></td><td style="text-align:center;color:var(--red);font-weight:700">81d</td></tr><tr><td><strong>INSTITUCION SALESIANA NUESTRA SEÑORA DE LUJAN.</strong></td><td>QR</td><td><span style="color:#7B68EE;font-weight:700">Interesado</span></td><td style="text-align:center;color:var(--red);font-weight:700">81d</td></tr><tr><td><strong>INSTITUCION SALESIANA NUESTRA SEÑORA DE LUJAN.</strong></td><td>Point</td><td><span style="color:#7B68EE;font-weight:700">Interesado</span></td><td style="text-align:center;color:var(--red);font-weight:700">81d</td></tr><tr><td><strong>El Cipres Hogar</strong></td><td>QR</td><td><span style="color:#7B68EE;font-weight:700">Interesado</span></td><td style="text-align:center;color:var(--red);font-weight:700">72d</td></tr><tr><td><strong>El Cipres Hogar</strong></td><td>Point</td><td><span style="color:#7B68EE;font-weight:700">Interesado</span></td><td style="text-align:center;color:var(--red);font-weight:700">72d</td></tr><tr><td><strong>Lacteos del Sur MP</strong></td><td>QR</td><td><span style="color:#7B68EE;font-weight:700">Interesado</span></td><td style="text-align:center;color:var(--green);font-weight:700">23d</td></tr><tr><td><strong>Lacteos del Sur MP</strong></td><td>Point</td><td><span style="color:#7B68EE;font-weight:700">Interesado</span></td><td style="text-align:center;color:var(--green);font-weight:700">23d</td></tr><tr><td><strong>El Imperio de la Carne</strong></td><td>QR</td><td><span style="color:#7B68EE;font-weight:700">Interesado</span></td><td style="text-align:center;color:var(--green);font-weight:700">10d</td></tr><tr><td><strong>El Imperio de la Carne</strong></td><td>Point</td><td><span style="color:#7B68EE;font-weight:700">Interesado</span></td><td style="text-align:center;color:var(--green);font-weight:700">10d</td></tr><tr><td><strong>Simple Express</strong></td><td>Point</td><td><span style="color:#7B68EE;font-weight:700">Interesado</span></td><td style="text-align:center;color:var(--green);font-weight:700">7d</td></tr><tr><td><strong>Simple Express</strong></td><td>QR</td><td><span style="color:#7B68EE;font-weight:700">Interesado</span></td><td style="text-align:center;color:var(--green);font-weight:700">7d</td></tr><tr><td><strong>Mindo Saez Pinturerias</strong></td><td>Point</td><td><span style="color:#7B68EE;font-weight:700">Interesado</span></td><td style="text-align:center;color:var(--green);font-weight:700">4d</td></tr><tr><td><strong>Mindo Saez Pinturerias</strong></td><td>QR</td><td><span style="color:#7B68EE;font-weight:700">Interesado</span></td><td style="text-align:center;color:var(--green);font-weight:700">4d</td></tr><tr><td><strong>Cooperativa COSPAC</strong></td><td>QR</td><td><span style="color:#FF7733;font-weight:700">Configuración</span></td><td style="text-align:center;color:#FF7733;font-weight:700">45d</td></tr><tr><td><strong>Cooperativa COSPAC</strong></td><td>Point</td><td><span style="color:#FF7733;font-weight:700">Configuración</span></td><td style="text-align:center;color:#FF7733;font-weight:700">45d</td></tr><tr><td><strong>Autovía Mercosur</strong></td><td>QR</td><td><span style="color:#00A650;font-weight:700">Cerrada Ganada</span></td><td style="text-align:center;color:#FF7733;font-weight:700">50d</td></tr><tr><td><strong>Carnes Mi Estancia</strong></td><td>QR</td><td><span style="color:#00A650;font-weight:700">Cerrada Ganada</span></td><td style="text-align:center;color:#FF7733;font-weight:700">31d</td></tr><tr><td><strong>Carnes Mi Estancia</strong></td><td>Point</td><td><span style="color:#00A650;font-weight:700">Cerrada Ganada</span></td><td style="text-align:center;color:#FF7733;font-weight:700">31d</td></tr><tr><td><strong>La Martina Neuquen</strong></td><td>QR</td><td><span style="color:#00A650;font-weight:700">Cerrada Ganada</span></td><td style="text-align:center;color:var(--green);font-weight:700">18d</td></tr><tr><td><strong>La Martina Neuquen</strong></td><td>Point</td><td><span style="color:#00A650;font-weight:700">Cerrada Ganada</span></td><td style="text-align:center;color:var(--green);font-weight:700">18d</td></tr><tr><td><strong>Autopista Rosario.</strong></td><td>QR</td><td><span style="color:#F23D4F;font-weight:700">Cerrada Perdida</span></td><td style="text-align:center;color:var(--green);font-weight:700">10d</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+        <div style="flex:1;display:flex;flex-direction:column;gap:8px;min-width:0">
+          <div style="font-size:15px;font-weight:900;color:var(--dark)">Carolina Cruz</div>
+          <div style="display:flex;gap:12px;font-size:12px;flex-wrap:wrap">
+            <span><strong>14</strong> oportunidades</span>
+            <span style="color:#009EE3"><strong>7</strong> QR</span>
+            <span style="color:#FF7733"><strong>7</strong> Point</span>
+            <span style="color:var(--green);font-weight:700"><strong>4</strong> creadas en Marzo</span>
+          </div>
+          <div style="flex:1;overflow:auto">
+            <table class="tbl" style="font-size:11.5px">
+              <thead><tr><th>Cuenta</th><th>Producto</th><th>Etapa</th><th style="text-align:center">Días</th></tr></thead>
+              <tbody><tr><td><strong>todo color mendoza</strong></td><td>QR</td><td><span style="color:#7B68EE;font-weight:700">Interesado</span></td><td style="text-align:center;color:#FF7733;font-weight:700">53d</td></tr><tr><td><strong>todo color mendoza</strong></td><td>Point</td><td><span style="color:#7B68EE;font-weight:700">Interesado</span></td><td style="text-align:center;color:#FF7733;font-weight:700">53d</td></tr><tr><td><strong>RODAMIENTOS CUYO</strong></td><td>QR</td><td><span style="color:#7B68EE;font-weight:700">Interesado</span></td><td style="text-align:center;color:#FF7733;font-weight:700">35d</td></tr><tr><td><strong>RODAMIENTOS CUYO</strong></td><td>Point</td><td><span style="color:#7B68EE;font-weight:700">Interesado</span></td><td style="text-align:center;color:#FF7733;font-weight:700">35d</td></tr><tr><td><strong>TODO HIERRO NEUQUEN</strong></td><td>Point</td><td><span style="color:#7B68EE;font-weight:700">Interesado</span></td><td style="text-align:center;color:var(--green);font-weight:700">22d</td></tr><tr><td><strong>TODO HIERRO NEUQUEN</strong></td><td>QR</td><td><span style="color:#7B68EE;font-weight:700">Interesado</span></td><td style="text-align:center;color:var(--green);font-weight:700">22d</td></tr><tr><td><strong>La casa de las herramientas</strong></td><td>QR</td><td><span style="color:#7B68EE;font-weight:700">Interesado</span></td><td style="text-align:center;color:var(--green);font-weight:700">3d</td></tr><tr><td><strong>La casa de las herramientas</strong></td><td>Point</td><td><span style="color:#7B68EE;font-weight:700">Interesado</span></td><td style="text-align:center;color:var(--green);font-weight:700">3d</td></tr><tr><td><strong>Narrow</strong></td><td>QR</td><td><span style="color:#FF7733;font-weight:700">Configuración</span></td><td style="text-align:center;color:var(--green);font-weight:700">10d</td></tr><tr><td><strong>Narrow</strong></td><td>Point</td><td><span style="color:#FF7733;font-weight:700">Configuración</span></td><td style="text-align:center;color:var(--green);font-weight:700">10d</td></tr><tr><td><strong>Entredos</strong></td><td>QR</td><td><span style="color:#00A650;font-weight:700">Cerrada Ganada</span></td><td style="text-align:center;color:#FF7733;font-weight:700">51d</td></tr><tr><td><strong>Entredos</strong></td><td>Point</td><td><span style="color:#00A650;font-weight:700">Cerrada Ganada</span></td><td style="text-align:center;color:#FF7733;font-weight:700">51d</td></tr><tr><td><strong>Siglo21 M&H</strong></td><td>Point</td><td><span style="color:#00A650;font-weight:700">Cerrada Ganada</span></td><td style="text-align:center;color:#FF7733;font-weight:700">48d</td></tr><tr><td><strong>Siglo21 M&H</strong></td><td>QR</td><td><span style="color:#00A650;font-weight:700">Cerrada Ganada</span></td><td style="text-align:center;color:#FF7733;font-weight:700">48d</td></tr></tbody>
+            </table>
+          </div>
+        </div></div>
+</div>
+<div class="slide" id="s9" style="background:#FFE600">
+  <div class="sheader"><div class="tag">Salesforce · Pipeline por Hunter</div><div class="h1">Tomas Melis · Santiago Leaniz</div></div>
+  <div style="flex:1;display:flex;gap:16px;min-height:0;overflow:hidden">
+        <div style="flex:1;display:flex;flex-direction:column;gap:8px;min-width:0">
+          <div style="font-size:15px;font-weight:900;color:var(--dark)">Tomas Melis</div>
+          <div style="display:flex;gap:12px;font-size:12px;flex-wrap:wrap">
+            <span><strong>27</strong> oportunidades</span>
+            <span style="color:#009EE3"><strong>13</strong> QR</span>
+            <span style="color:#FF7733"><strong>14</strong> Point</span>
+            <span style="color:var(--green);font-weight:700"><strong>8</strong> creadas en Marzo</span>
+          </div>
+          <div style="flex:1;overflow:auto">
+            <table class="tbl" style="font-size:11.5px">
+              <thead><tr><th>Cuenta</th><th>Producto</th><th>Etapa</th><th style="text-align:center">Días</th></tr></thead>
+              <tbody><tr><td><strong>GrupoAlbisu.</strong></td><td>Point</td><td><span style="color:#7B68EE;font-weight:700">Interesado</span></td><td style="text-align:center;color:var(--red);font-weight:700">98d</td></tr><tr><td><strong>Mayorista Wally</strong></td><td>Point</td><td><span style="color:#7B68EE;font-weight:700">Interesado</span></td><td style="text-align:center;color:var(--red);font-weight:700">93d</td></tr><tr><td><strong>Puelche Mayorista</strong></td><td>Point</td><td><span style="color:#7B68EE;font-weight:700">Interesado</span></td><td style="text-align:center;color:var(--red);font-weight:700">92d</td></tr><tr><td><strong>Puelche Mayorista</strong></td><td>QR</td><td><span style="color:#7B68EE;font-weight:700">Interesado</span></td><td style="text-align:center;color:var(--red);font-weight:700">90d</td></tr><tr><td><strong>Nonino Empanadas</strong></td><td>Point</td><td><span style="color:#7B68EE;font-weight:700">Interesado</span></td><td style="text-align:center;color:var(--red);font-weight:700">90d</td></tr><tr><td><strong>Nonino Empanadas</strong></td><td>QR</td><td><span style="color:#7B68EE;font-weight:700">Interesado</span></td><td style="text-align:center;color:var(--red);font-weight:700">90d</td></tr><tr><td><strong>GrupoAlbisu.</strong></td><td>QR</td><td><span style="color:#7B68EE;font-weight:700">Interesado</span></td><td style="text-align:center;color:var(--red);font-weight:700">85d</td></tr><tr><td><strong>DUVAL ST</strong></td><td>Point</td><td><span style="color:#7B68EE;font-weight:700">Interesado</span></td><td style="text-align:center;color:var(--red);font-weight:700">71d</td></tr><tr><td><strong>DUVAL ST</strong></td><td>QR</td><td><span style="color:#7B68EE;font-weight:700">Interesado</span></td><td style="text-align:center;color:var(--red);font-weight:700">71d</td></tr><tr><td><strong>Municipalidad de Bariloche.</strong></td><td>Point</td><td><span style="color:#7B68EE;font-weight:700">Interesado</span></td><td style="text-align:center;color:var(--red);font-weight:700">64d</td></tr><tr><td><strong>Farmacias San Martin</strong></td><td>Point</td><td><span style="color:#7B68EE;font-weight:700">Interesado</span></td><td style="text-align:center;color:#FF7733;font-weight:700">52d</td></tr><tr><td><strong>Farmacias San Martin</strong></td><td>QR</td><td><span style="color:#7B68EE;font-weight:700">Interesado</span></td><td style="text-align:center;color:#FF7733;font-weight:700">52d</td></tr><tr><td><strong>Municipalidad de Bariloche.</strong></td><td>QR</td><td><span style="color:#7B68EE;font-weight:700">Interesado</span></td><td style="text-align:center;color:#FF7733;font-weight:700">52d</td></tr><tr><td><strong>Yolanda Revestimientos</strong></td><td>Point</td><td><span style="color:#7B68EE;font-weight:700">Interesado</span></td><td style="text-align:center;color:#FF7733;font-weight:700">50d</td></tr><tr><td><strong>Yolanda Revestimientos</strong></td><td>QR</td><td><span style="color:#7B68EE;font-weight:700">Interesado</span></td><td style="text-align:center;color:#FF7733;font-weight:700">50d</td></tr><tr><td><strong>MUNICIPALIDAD DE ROCA.</strong></td><td>Point</td><td><span style="color:#7B68EE;font-weight:700">Interesado</span></td><td style="text-align:center;color:#FF7733;font-weight:700">50d</td></tr><tr><td><strong>MUNICIPALIDAD DE ROCA.</strong></td><td>QR</td><td><span style="color:#7B68EE;font-weight:700">Interesado</span></td><td style="text-align:center;color:#FF7733;font-weight:700">49d</td></tr><tr><td><strong>CABRALES SA CAFE</strong></td><td>Point</td><td><span style="color:#7B68EE;font-weight:700">Interesado</span></td><td style="text-align:center;color:#FF7733;font-weight:700">43d</td></tr><tr><td><strong>CABRALES SA CAFE</strong></td><td>QR</td><td><span style="color:#7B68EE;font-weight:700">Interesado</span></td><td style="text-align:center;color:#FF7733;font-weight:700">43d</td></tr><tr><td><strong>Casa Torca</strong></td><td>QR</td><td><span style="color:#7B68EE;font-weight:700">Interesado</span></td><td style="text-align:center;color:#FF7733;font-weight:700">31d</td></tr><tr><td><strong>Casa Torca</strong></td><td>Point</td><td><span style="color:#7B68EE;font-weight:700">Interesado</span></td><td style="text-align:center;color:#FF7733;font-weight:700">31d</td></tr><tr><td><strong>Frigorífico La Union 1</strong></td><td>QR</td><td><span style="color:#7B68EE;font-weight:700">Interesado</span></td><td style="text-align:center;color:#FF7733;font-weight:700">31d</td></tr><tr><td><strong>Frigorífico La Union 1</strong></td><td>Point</td><td><span style="color:#7B68EE;font-weight:700">Interesado</span></td><td style="text-align:center;color:#FF7733;font-weight:700">31d</td></tr><tr><td><strong>ABERTURAS PAMPEANAS</strong></td><td>QR</td><td><span style="color:#7B68EE;font-weight:700">Interesado</span></td><td style="text-align:center;color:var(--green);font-weight:700">22d</td></tr><tr><td><strong>ABERTURAS PAMPEANAS</strong></td><td>Point</td><td><span style="color:#7B68EE;font-weight:700">Interesado</span></td><td style="text-align:center;color:var(--green);font-weight:700">22d</td></tr><tr><td><strong>La Tercera Futbol</strong></td><td>Point</td><td><span style="color:#F23D4F;font-weight:700">Cerrada Perdida</span></td><td style="text-align:center;color:var(--green);font-weight:700">17d</td></tr><tr><td><strong>La Tercera Futbol</strong></td><td>QR</td><td><span style="color:#F23D4F;font-weight:700">Cerrada Perdida</span></td><td style="text-align:center;color:var(--green);font-weight:700">17d</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+        <div style="flex:1;display:flex;flex-direction:column;gap:8px;min-width:0">
+          <div style="font-size:15px;font-weight:900;color:var(--dark)">Santiago Leaniz</div>
+          <div style="display:flex;gap:12px;font-size:12px;flex-wrap:wrap">
+            <span><strong>36</strong> oportunidades</span>
+            <span style="color:#009EE3"><strong>18</strong> QR</span>
+            <span style="color:#FF7733"><strong>19</strong> Point</span>
+            <span style="color:var(--green);font-weight:700"><strong>13</strong> creadas en Marzo</span>
+          </div>
+          <div style="flex:1;overflow:auto">
+            <table class="tbl" style="font-size:11.5px">
+              <thead><tr><th>Cuenta</th><th>Producto</th><th>Etapa</th><th style="text-align:center">Días</th></tr></thead>
+              <tbody><tr><td><strong>Autoshop AT</strong></td><td>QR</td><td><span style="color:#7B68EE;font-weight:700">Interesado</span></td><td style="text-align:center;color:var(--red);font-weight:700">100d</td></tr><tr><td><strong>Autoshop AT</strong></td><td>Point</td><td><span style="color:#7B68EE;font-weight:700">Interesado</span></td><td style="text-align:center;color:var(--red);font-weight:700">100d</td></tr><tr><td><strong>La Marca Muebles Parent</strong></td><td>Point</td><td><span style="color:#7B68EE;font-weight:700">Interesado</span></td><td style="text-align:center;color:var(--red);font-weight:700">94d</td></tr><tr><td><strong>La Marca Muebles Parent</strong></td><td>QR</td><td><span style="color:#7B68EE;font-weight:700">Interesado</span></td><td style="text-align:center;color:var(--red);font-weight:700">94d</td></tr><tr><td><strong>Redisur SRL Parent</strong></td><td>Point</td><td><span style="color:#7B68EE;font-weight:700">Interesado</span></td><td style="text-align:center;color:var(--red);font-weight:700">94d</td></tr><tr><td><strong>Redisur SRL Parent</strong></td><td>QR</td><td><span style="color:#7B68EE;font-weight:700">Interesado</span></td><td style="text-align:center;color:var(--red);font-weight:700">94d</td></tr><tr><td><strong>Frantom Bariloche</strong></td><td>Point</td><td><span style="color:#7B68EE;font-weight:700">Interesado</span></td><td style="text-align:center;color:var(--red);font-weight:700">84d</td></tr><tr><td><strong>Frantom Bariloche</strong></td><td>QR</td><td><span style="color:#7B68EE;font-weight:700">Interesado</span></td><td style="text-align:center;color:var(--red);font-weight:700">84d</td></tr><tr><td><strong>Austral Corralon</strong></td><td>QR</td><td><span style="color:#7B68EE;font-weight:700">Interesado</span></td><td style="text-align:center;color:var(--red);font-weight:700">81d</td></tr><tr><td><strong>Hosteria patagon</strong></td><td>Point</td><td><span style="color:#7B68EE;font-weight:700">Interesado</span></td><td style="text-align:center;color:var(--red);font-weight:700">78d</td></tr><tr><td><strong>Austral</strong></td><td>QR + POINT</td><td><span style="color:#7B68EE;font-weight:700">Interesado</span></td><td style="text-align:center;color:var(--red);font-weight:700">71d</td></tr><tr><td><strong>Colon Supermercados</strong></td><td>Point</td><td><span style="color:#7B68EE;font-weight:700">Interesado</span></td><td style="text-align:center;color:var(--red);font-weight:700">64d</td></tr><tr><td><strong>Colon Supermercados</strong></td><td>QR</td><td><span style="color:#7B68EE;font-weight:700">Interesado</span></td><td style="text-align:center;color:var(--red);font-weight:700">64d</td></tr><tr><td><strong>Pinturerias dante</strong></td><td>QR</td><td><span style="color:#7B68EE;font-weight:700">Interesado</span></td><td style="text-align:center;color:var(--red);font-weight:700">63d</td></tr><tr><td><strong>Pinturerias dante</strong></td><td>Point</td><td><span style="color:#7B68EE;font-weight:700">Interesado</span></td><td style="text-align:center;color:var(--red);font-weight:700">63d</td></tr><tr><td><strong>Ali frut Mendoza</strong></td><td>Point</td><td><span style="color:#7B68EE;font-weight:700">Interesado</span></td><td style="text-align:center;color:#FF7733;font-weight:700">52d</td></tr><tr><td><strong>Ali frut Mendoza</strong></td><td>QR</td><td><span style="color:#7B68EE;font-weight:700">Interesado</span></td><td style="text-align:center;color:#FF7733;font-weight:700">52d</td></tr><tr><td><strong>Neuquen Tower Hotel</strong></td><td>Point</td><td><span style="color:#7B68EE;font-weight:700">Interesado</span></td><td style="text-align:center;color:#FF7733;font-weight:700">31d</td></tr><tr><td><strong>Neuquen Tower Hotel</strong></td><td>QR</td><td><span style="color:#7B68EE;font-weight:700">Interesado</span></td><td style="text-align:center;color:#FF7733;font-weight:700">31d</td></tr><tr><td><strong>Clinica Pasteur</strong></td><td>Point</td><td><span style="color:#7B68EE;font-weight:700">Interesado</span></td><td style="text-align:center;color:var(--green);font-weight:700">30d</td></tr><tr><td><strong>Clinica Pasteur</strong></td><td>QR</td><td><span style="color:#7B68EE;font-weight:700">Interesado</span></td><td style="text-align:center;color:var(--green);font-weight:700">30d</td></tr><tr><td><strong>Opticas Neuquen</strong></td><td>Point</td><td><span style="color:#7B68EE;font-weight:700">Interesado</span></td><td style="text-align:center;color:var(--green);font-weight:700">29d</td></tr><tr><td><strong>Opticas Neuquen</strong></td><td>QR</td><td><span style="color:#7B68EE;font-weight:700">Interesado</span></td><td style="text-align:center;color:var(--green);font-weight:700">29d</td></tr><tr><td><strong>Policlinico Neuquen</strong></td><td>Point</td><td><span style="color:#7B68EE;font-weight:700">Interesado</span></td><td style="text-align:center;color:var(--green);font-weight:700">22d</td></tr><tr><td><strong>Policlinico Neuquen</strong></td><td>QR</td><td><span style="color:#7B68EE;font-weight:700">Interesado</span></td><td style="text-align:center;color:var(--green);font-weight:700">22d</td></tr><tr><td><strong>Mix de compras Neuquen</strong></td><td>QR</td><td><span style="color:#7B68EE;font-weight:700">Interesado</span></td><td style="text-align:center;color:var(--green);font-weight:700">22d</td></tr><tr><td><strong>Mix de compras Neuquen</strong></td><td>Point</td><td><span style="color:#7B68EE;font-weight:700">Interesado</span></td><td style="text-align:center;color:var(--green);font-weight:700">22d</td></tr><tr><td><strong>Austral Corralon</strong></td><td>Point</td><td><span style="color:#7B68EE;font-weight:700">Interesado</span></td><td style="text-align:center;color:var(--green);font-weight:700">17d</td></tr><tr><td><strong>Autoshop AT</strong></td><td>QR</td><td><span style="color:#FF7733;font-weight:700">Configuración</span></td><td style="text-align:center;color:var(--red);font-weight:700">87d</td></tr><tr><td><strong>Autoshop AT</strong></td><td>Point</td><td><span style="color:#FF7733;font-weight:700">Configuración</span></td><td style="text-align:center;color:var(--red);font-weight:700">87d</td></tr><tr><td><strong>Lemaya Distribuciones</strong></td><td>Point</td><td><span style="color:#00A650;font-weight:700">Cerrada Ganada</span></td><td style="text-align:center;color:var(--red);font-weight:700">74d</td></tr><tr><td><strong>Lemaya Distribuciones</strong></td><td>QR</td><td><span style="color:#00A650;font-weight:700">Cerrada Ganada</span></td><td style="text-align:center;color:var(--red);font-weight:700">74d</td></tr><tr><td><strong>Dimax Ostende</strong></td><td>Point</td><td><span style="color:#00A650;font-weight:700">Cerrada Ganada</span></td><td style="text-align:center;color:#FF7733;font-weight:700">46d</td></tr><tr><td><strong>Dimax Ostende</strong></td><td>QR</td><td><span style="color:#00A650;font-weight:700">Cerrada Ganada</span></td><td style="text-align:center;color:#FF7733;font-weight:700">46d</td></tr><tr><td><strong>frigorifico de la patagonia</strong></td><td>Point</td><td><span style="color:#00A650;font-weight:700">Cerrada Ganada</span></td><td style="text-align:center;color:var(--green);font-weight:700">21d</td></tr><tr><td><strong>frigorifico de la patagonia</strong></td><td>QR</td><td><span style="color:#00A650;font-weight:700">Cerrada Ganada</span></td><td style="text-align:center;color:var(--green);font-weight:700">21d</td></tr></tbody>
+            </table>
+          </div>
+        </div></div>
+</div>
+<div class="slide" id="s10" style="background:#FFE600">
+  <div class="sheader"><div class="tag">Salesforce · Pipeline por Hunter</div><div class="h1">Federico Perez · Willem Goodridge</div></div>
+  <div style="flex:1;display:flex;gap:16px;min-height:0;overflow:hidden">
+        <div style="flex:1;display:flex;flex-direction:column;gap:8px;min-width:0">
+          <div style="font-size:15px;font-weight:900;color:var(--dark)">Federico Perez</div>
+          <div style="display:flex;gap:12px;font-size:12px;flex-wrap:wrap">
+            <span><strong>16</strong> oportunidades</span>
+            <span style="color:#009EE3"><strong>8</strong> QR</span>
+            <span style="color:#FF7733"><strong>8</strong> Point</span>
+            <span style="color:var(--green);font-weight:700"><strong>4</strong> creadas en Marzo</span>
+          </div>
+          <div style="flex:1;overflow:auto">
+            <table class="tbl" style="font-size:11.5px">
+              <thead><tr><th>Cuenta</th><th>Producto</th><th>Etapa</th><th style="text-align:center">Días</th></tr></thead>
+              <tbody><tr><td><strong>Equipel</strong></td><td>Point</td><td><span style="color:#009EE3;font-weight:700">Propuesta Enviada</span></td><td style="text-align:center;color:#FF7733;font-weight:700">51d</td></tr><tr><td><strong>Equipel</strong></td><td>QR</td><td><span style="color:#009EE3;font-weight:700">Propuesta Enviada</span></td><td style="text-align:center;color:#FF7733;font-weight:700">51d</td></tr><tr><td><strong>Mega Shop</strong></td><td>Point</td><td><span style="color:#7B68EE;font-weight:700">Interesado</span></td><td style="text-align:center;color:var(--green);font-weight:700">3d</td></tr><tr><td><strong>Mega Shop</strong></td><td>QR</td><td><span style="color:#7B68EE;font-weight:700">Interesado</span></td><td style="text-align:center;color:var(--green);font-weight:700">3d</td></tr><tr><td><strong>Credi Guia</strong></td><td>QR</td><td><span style="color:#FF7733;font-weight:700">Configuración</span></td><td style="text-align:center;color:var(--green);font-weight:700">3d</td></tr><tr><td><strong>Credi Guia</strong></td><td>Point</td><td><span style="color:#FF7733;font-weight:700">Configuración</span></td><td style="text-align:center;color:var(--green);font-weight:700">3d</td></tr><tr><td><strong>Super Victoria SM</strong></td><td>QR</td><td><span style="color:#00A650;font-weight:700">Cerrada Ganada</span></td><td style="text-align:center;color:#FF7733;font-weight:700">57d</td></tr><tr><td><strong>Super Victoria SM</strong></td><td>Point</td><td><span style="color:#00A650;font-weight:700">Cerrada Ganada</span></td><td style="text-align:center;color:#FF7733;font-weight:700">57d</td></tr><tr><td><strong>Chocolatería Torres</strong></td><td>QR</td><td><span style="color:#00A650;font-weight:700">Cerrada Ganada</span></td><td style="text-align:center;color:var(--green);font-weight:700">23d</td></tr><tr><td><strong>Chocolatería Torres</strong></td><td>Point</td><td><span style="color:#00A650;font-weight:700">Cerrada Ganada</span></td><td style="text-align:center;color:var(--green);font-weight:700">23d</td></tr><tr><td><strong>La Granja de Lily.</strong></td><td>Point</td><td><span style="color:#00A650;font-weight:700">Cerrada Ganada</span></td><td style="text-align:center;color:var(--green);font-weight:700">17d</td></tr><tr><td><strong>La Granja de Lily.</strong></td><td>QR</td><td><span style="color:#00A650;font-weight:700">Cerrada Ganada</span></td><td style="text-align:center;color:var(--green);font-weight:700">17d</td></tr><tr><td><strong>Pro Tickets.</strong></td><td>Point</td><td><span style="color:#00A650;font-weight:700">Cerrada Ganada</span></td><td style="text-align:center;color:var(--green);font-weight:700">17d</td></tr><tr><td><strong>Pro Tickets.</strong></td><td>QR</td><td><span style="color:#00A650;font-weight:700">Cerrada Ganada</span></td><td style="text-align:center;color:var(--green);font-weight:700">17d</td></tr><tr><td><strong>Club San Martin de Carhué</strong></td><td>QR</td><td><span style="color:#F23D4F;font-weight:700">Cerrada Perdida</span></td><td style="text-align:center;color:var(--red);font-weight:700">71d</td></tr><tr><td><strong>Club San Martin de Carhué</strong></td><td>Point</td><td><span style="color:#F23D4F;font-weight:700">Cerrada Perdida</span></td><td style="text-align:center;color:var(--red);font-weight:700">71d</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+        <div style="flex:1;display:flex;flex-direction:column;gap:8px;min-width:0">
+          <div style="font-size:15px;font-weight:900;color:var(--dark)">Willem Goodridge</div>
+          <div style="display:flex;gap:12px;font-size:12px;flex-wrap:wrap">
+            <span><strong>16</strong> oportunidades</span>
+            <span style="color:#009EE3"><strong>7</strong> QR</span>
+            <span style="color:#FF7733"><strong>9</strong> Point</span>
+            <span style="color:var(--green);font-weight:700"><strong>11</strong> creadas en Marzo</span>
+          </div>
+          <div style="flex:1;overflow:auto">
+            <table class="tbl" style="font-size:11.5px">
+              <thead><tr><th>Cuenta</th><th>Producto</th><th>Etapa</th><th style="text-align:center">Días</th></tr></thead>
+              <tbody><tr><td><strong>corralon patagonico</strong></td><td>QR</td><td><span style="color:#009EE3;font-weight:700">Propuesta Enviada</span></td><td style="text-align:center;color:var(--green);font-weight:700">29d</td></tr><tr><td><strong>corralon patagonico</strong></td><td>Point</td><td><span style="color:#009EE3;font-weight:700">Propuesta Enviada</span></td><td style="text-align:center;color:var(--green);font-weight:700">29d</td></tr><tr><td><strong>TODOPARALAGASTRONOMIASA</strong></td><td>Point</td><td><span style="color:#7B68EE;font-weight:700">Interesado</span></td><td style="text-align:center;color:#FF7733;font-weight:700">52d</td></tr><tr><td><strong>TODOPARALAGASTRONOMIASA</strong></td><td>Point</td><td><span style="color:#7B68EE;font-weight:700">Interesado</span></td><td style="text-align:center;color:#FF7733;font-weight:700">52d</td></tr><tr><td><strong>Casa Teixeira</strong></td><td>Point</td><td><span style="color:#7B68EE;font-weight:700">Interesado</span></td><td style="text-align:center;color:var(--green);font-weight:700">30d</td></tr><tr><td><strong>Casa Teixeira</strong></td><td>QR</td><td><span style="color:#7B68EE;font-weight:700">Interesado</span></td><td style="text-align:center;color:var(--green);font-weight:700">30d</td></tr><tr><td><strong>F.C.Q Autoservicio Mayorista Minorista</strong></td><td>Point</td><td><span style="color:#7B68EE;font-weight:700">Interesado</span></td><td style="text-align:center;color:var(--green);font-weight:700">22d</td></tr><tr><td><strong>F.C.Q Autoservicio Mayorista Minorista</strong></td><td>QR</td><td><span style="color:#7B68EE;font-weight:700">Interesado</span></td><td style="text-align:center;color:var(--green);font-weight:700">22d</td></tr><tr><td><strong>ELGALLEGO_MATERIALES</strong></td><td>QR</td><td><span style="color:#7B68EE;font-weight:700">Interesado</span></td><td style="text-align:center;color:var(--green);font-weight:700">18d</td></tr><tr><td><strong>ELGALLEGO_MATERIALES</strong></td><td>Point</td><td><span style="color:#7B68EE;font-weight:700">Interesado</span></td><td style="text-align:center;color:var(--green);font-weight:700">18d</td></tr><tr><td><strong>MILAEXPRESSRL</strong></td><td>Point</td><td><span style="color:#7B68EE;font-weight:700">Interesado</span></td><td style="text-align:center;color:var(--green);font-weight:700">10d</td></tr><tr><td><strong>MILAEXPRESSRL</strong></td><td>QR</td><td><span style="color:#7B68EE;font-weight:700">Interesado</span></td><td style="text-align:center;color:var(--green);font-weight:700">10d</td></tr><tr><td><strong>Industria Living.</strong></td><td>Point</td><td><span style="color:#FF7733;font-weight:700">Configuración</span></td><td style="text-align:center;color:var(--green);font-weight:700">10d</td></tr><tr><td><strong>Industria Living.</strong></td><td>QR</td><td><span style="color:#FF7733;font-weight:700">Configuración</span></td><td style="text-align:center;color:var(--green);font-weight:700">10d</td></tr><tr><td><strong>La fonda del tio.</strong></td><td>Point</td><td><span style="color:#00A650;font-weight:700">Cerrada Ganada</span></td><td style="text-align:center;color:var(--green);font-weight:700">22d</td></tr><tr><td><strong>La fonda del tio.</strong></td><td>QR</td><td><span style="color:#00A650;font-weight:700">Cerrada Ganada</span></td><td style="text-align:center;color:var(--green);font-weight:700">22d</td></tr></tbody>
+            </table>
+          </div>
+        </div></div>
+</div>
+<div class="slide" id="s11" style="background:#FFE600">
+  <div class="sheader"><div class="tag">Salesforce · Pipeline por Hunter</div><div class="h1">Camila Paletta</div></div>
+  <div style="flex:1;display:flex;gap:16px;min-height:0;overflow:hidden">
+        <div style="flex:1;display:flex;flex-direction:column;gap:8px;min-width:0">
+          <div style="font-size:15px;font-weight:900;color:var(--dark)">Camila Paletta</div>
+          <div style="display:flex;gap:12px;font-size:12px;flex-wrap:wrap">
+            <span><strong>6</strong> oportunidades</span>
+            <span style="color:#009EE3"><strong>3</strong> QR</span>
+            <span style="color:#FF7733"><strong>3</strong> Point</span>
+            <span style="color:var(--green);font-weight:700"><strong>4</strong> creadas en Marzo</span>
+          </div>
+          <div style="flex:1;overflow:auto">
+            <table class="tbl" style="font-size:11.5px">
+              <thead><tr><th>Cuenta</th><th>Producto</th><th>Etapa</th><th style="text-align:center">Días</th></tr></thead>
+              <tbody><tr><td><strong>Tres provincias seguros de personas S.A</strong></td><td>Point</td><td><span style="color:#7B68EE;font-weight:700">Interesado</span></td><td style="text-align:center;color:#FF7733;font-weight:700">52d</td></tr><tr><td><strong>Tres provincias seguros de personas S.A</strong></td><td>QR</td><td><span style="color:#7B68EE;font-weight:700">Interesado</span></td><td style="text-align:center;color:#FF7733;font-weight:700">52d</td></tr><tr><td><strong>DECO HOME MDQ</strong></td><td>Point</td><td><span style="color:#7B68EE;font-weight:700">Interesado</span></td><td style="text-align:center;color:var(--green);font-weight:700">16d</td></tr><tr><td><strong>DECO HOME MDQ</strong></td><td>QR</td><td><span style="color:#7B68EE;font-weight:700">Interesado</span></td><td style="text-align:center;color:var(--green);font-weight:700">16d</td></tr><tr><td><strong>Grupo Mottesi</strong></td><td>Point</td><td><span style="color:#FF7733;font-weight:700">Configuración</span></td><td style="text-align:center;color:var(--green);font-weight:700">16d</td></tr><tr><td><strong>Grupo Mottesi</strong></td><td>QR</td><td><span style="color:#FF7733;font-weight:700">Configuración</span></td><td style="text-align:center;color:var(--green);font-weight:700">16d</td></tr></tbody>
+            </table>
+          </div>
+        </div></div>
+</div>
+<div class="slide" id="s12" style="background:#FFE600">
+  <div class="sheader"><div class="tag">Análisis de Forecast · Ene–Marzo 2026</div><div class="h1">¿Qué tan bien forecastean los hunters?</div></div>
+  <div class="acccols">
+    <div class="card" style="display:flex;flex-direction:column">
+      <div style="font-size:12px;font-weight:700;color:var(--gray);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px">Desviación promedio Forecast vs Real (%)</div>
+      <div class="chartbox" style="flex:1"><canvas id="cAcc"></canvas></div>
+      <div style="font-size:11px;color:var(--gray);margin-top:8px">Verde = subestima (conservador) · Rojo = sobreestima (optimista)</div>
+    </div>
+    <div class="accright">
+      <div class="acard" style="border-left:4px solid var(--red)">
+        <div style="font-size:10.5px;color:var(--gray);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Más optimista (sobreestima)</div>
+        <div style="font-size:22px;font-weight:900;color:var(--red)">Federico -17%</div>
+      </div>
+      <div class="acard" style="border-left:4px solid var(--green)">
+        <div style="font-size:10.5px;color:var(--gray);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Más conservador (subestima)</div>
+        <div style="font-size:22px;font-weight:900;color:var(--green)">Martha +23%</div>
+      </div>
+      <div class="acard" style="border-left:4px solid var(--blue)">
+        <div style="font-size:10.5px;color:var(--gray);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Más calibrado</div>
+        <div style="font-size:22px;font-weight:900;color:var(--blue)">Tomas +0.5%</div>
+      </div>
+      <div class="acard" style="background:#FFFBEC;border:1px solid #FFE082"><div style="font-size:12px;color:#7A6010;line-height:1.5"><strong>⚡ Blind spots críticos:</strong> <strong>Grupo Prieto</strong> (Camila) $1.1M real, $0 forecast · <strong>Mega Shop</strong> (Federico) $465K real, $0 forecast. Incorporarlos al pipeline esta semana.</div></div>
+    </div>
+  </div>
+</div>
+<div class="slide" id="s13" style="background:#FFE600">
+  <div class="sheader"><div class="tag">Top Divergencias · Forecast vs Real</div><div class="h1">Las mayores sorpresas del trimestre</div></div>
+  <div class="divgrid">
+    <div class="dcard pos">
+      <div class="dhunter">Martha · Autovía Mercosur · Feb</div>
+      <div class="dtitle">Sorpresa positiva</div>
+      <div class="dbig" style="color:var(--green)">+59%</div>
+      <div class="ddet">Forecast $125K → Real <strong>$198K</strong><br>
+      Superó ampliamente el forecast del mes.</div>
+    </div>
+    <div class="dcard neg">
+      <div class="dhunter">Santiago · Playa Bacana · Feb</div>
+      <div class="dtitle">Caída crítica</div>
+      <div class="dbig" style="color:var(--red)">-58%</div>
+      <div class="ddet">Forecast $200K → Real <strong>$84K</strong><br>
+      Rendimiento muy por debajo del forecast.</div>
+    </div>
+    <div class="dcard pos">
+      <div class="dhunter">Carolina · Entre dos · Feb</div>
+      <div class="dtitle">Sorpresa positiva</div>
+      <div class="dbig" style="color:var(--green)">+45%</div>
+      <div class="ddet">Forecast $200K → Real <strong>$290K</strong><br>
+      Superó ampliamente el forecast del mes.</div>
+    </div>
+    <div class="dcard neg">
+      <div class="dhunter">Carolina · VERDULERIA DE LA TIERRA · Feb</div>
+      <div class="dtitle">Caída crítica</div>
+      <div class="dbig" style="color:var(--red)">-43%</div>
+      <div class="ddet">Forecast $200K → Real <strong>$115K</strong><br>
+      Rendimiento muy por debajo del forecast.</div>
+    </div>
+    <div class="dcard pos">
+      <div class="dhunter">Martha · Frigorifico Los Soles · Ene</div>
+      <div class="dtitle">Sorpresa positiva</div>
+      <div class="dbig" style="color:var(--green)">+34%</div>
+      <div class="ddet">Forecast $125K → Real <strong>$168K</strong><br>
+      Superó ampliamente el forecast del mes.</div>
+    </div>
+    <div class="dcard pos">
+      <div class="dhunter">Martha · Frigorifico Los Soles · Feb</div>
+      <div class="dtitle">Sorpresa positiva</div>
+      <div class="dbig" style="color:var(--green)">+27%</div>
+      <div class="ddet">Forecast $125K → Real <strong>$159K</strong><br>
+      Superó ampliamente el forecast del mes.</div>
+    </div></div>
+</div>
+<div class="slide" id="s14" style="background:#FFE600">
+  <div class="sheader"><div class="tag">Alertas · Cuentas Críticas</div><div class="h1">Cuentas que necesitan acción inmediata</div></div>
+  <div style="flex:1;display:flex;flex-direction:column;gap:12px;overflow:auto"><div class="ablk ablk-yel">
+      <div class="ablk-ttl" style="color:#8B6914">⚠️ Sin New cargado — hunters sin cierres proyectados para Marzo</div>
+      <div style="font-size:13px;color:#6B5B00;line-height:1.7">
+        <strong>Carolina</strong> tienen <strong>$0 en New</strong> esta semana. Su proyección lineal depende sólo del Current.
+        Sin cierres nuevos proyectados, el número del mes está en riesgo.<br>
+        <span style="color:var(--gray)">→ Definir deal list con ETA concreto antes del miércoles.</span>
+      </div></div><div class="ablk ablk-grn">
+      <div class="ablk-ttl" style="color:#00663A">✅ Mayor potencial en pipeline activo</div>
+      <div class="chips"><div class="chip"><strong>Federico Perez</strong> · $6.4M</div><div class="chip"><strong>Carolina Cruz</strong> · $3.5M</div><div class="chip"><strong>Tomas Melis</strong> · $3.3M</div><div class="chip"><strong>Camila Paletta</strong> · $3.2M</div><div class="chip"><strong>Santiago Leaniz</strong> · $3.1M</div><div class="chip"><strong>Martha Vautier</strong> · $2.6M</div></div></div></div>
+</div>
+<div class="slide" id="s15">
+  <div class="sheader"><div class="tag tag-w">Accionables</div><div class="h1 h1-w">Próximos pasos para el equipo</div></div>
+  <div class="nsgrid"><div class="nscard"><div class="nsnum">01</div><div class="nstit">Registrar Grupo Prieto en Salesforce</div><div class="nsdesc">$1.1M de TPV real en el período con $0 de forecast. La cuenta más grande sin visibilidad está en el pipeline de Camila. Incorporarla esta semana.</div></div><div class="nscard"><div class="nsnum">02</div><div class="nstit">Activar New para Carolina</div><div class="nsdesc">Sin cierres proyectados para Marzo, la proyección lineal es el techo del mes. Definir deal list concreta con ETA antes del miércoles.</div></div><div class="nscard"><div class="nsnum">03</div><div class="nstit">Convertir Propuestas Enviadas en cierres</div><div class="nsdesc">Hay 21 cuentas en Propuesta Enviada. Priorizar las que tienen ETA en Marzo y hacer seguimiento diario esta semana.</div></div><div class="nscard"><div class="nsnum">04</div><div class="nstit">Seguimiento a cuentas en Configuración</div><div class="nsdesc">10 cuentas en Configuración. Validar estado y confirmar fecha de activación. Las con ETA vencido necesitan decisión esta semana.</div></div><div class="nscard"><div class="nsnum">05</div><div class="nstit">Limpiar pipeline — cerrar pérdidas inactivas</div><div class="nsdesc">Revisar cuentas en Interesado sin movimiento en 60+ días y moverlas a Cerrada Perdida para mantener el forecast confiable y el pipeline limpio.</div></div><div class="nscard"><div class="nsnum">06</div><div class="nstit">Replicar el modelo de Martha</div><div class="nsdesc">Es el hunter más conservador del equipo (+23%). Entender qué cuentas superan el forecast para identificar patrones replicables en el resto del equipo.</div></div></div>
+</div>
+
+<div class="dots" id="dots"></div>
+<div class="navbtns">
+  <button class="nbtn" id="prev" onclick="go(-1)" disabled>←</button>
+  <span class="ncnt" id="cnt">1 / 15</span>
+  <button class="nbtn" id="next" onclick="go(1)">→</button>
+</div>
+<div class="kbdhint">← → para navegar · clic en puntos para saltar</div>
+
+<script>
+const TOTAL=15; let cur=1; const charts={};
+const dotsEl=document.getElementById("dots");
+for(let i=1;i<=TOTAL;i++){const d=document.createElement("div");d.className="dot"+(i===1?" on":"");d.onclick=()=>jump(i);dotsEl.appendChild(d);}
+function jump(n){document.getElementById("s"+cur).classList.remove("active");dotsEl.children[cur-1].classList.remove("on");cur=n;document.getElementById("s"+cur).classList.add("active");dotsEl.children[cur-1].classList.add("on");document.getElementById("cnt").textContent=cur+" / "+TOTAL;document.getElementById("prev").disabled=cur===1;document.getElementById("next").disabled=cur===TOTAL;document.getElementById("pb").style.width=(cur/TOTAL*100)+"%";setTimeout(()=>initChart(cur),60);}
+function go(d){const n=cur+d;if(n>=1&&n<=TOTAL)jump(n);}
+document.addEventListener("keydown",e=>{if(e.key==="ArrowRight"||e.key==="ArrowDown")go(1);if(e.key==="ArrowLeft"||e.key==="ArrowUp")go(-1);});
+document.getElementById("pb").style.width=(1/TOTAL*100)+"%";
+
+// ── Data ──
+const CHART_LABELS = ["Federico", "Martha", "Carolina", "Santiago", "Tomas", "Willem", "Camila"];
+const LINEAL_BASE  = [740088.0, 4278856.0, 1040919.0, 478897.0, 393860.0, 0, 0];
+const NEW_DATA     = [565000.0, 575000.0, 0.0, 150000.0, 125000.0, 0.0, 150000.0];
+const OBJ_DATA     = [233333,933333,466667,666667,666667,null,null];
+const ACC_LABELS   = ["Martha", "Carolina", "Tomas", "Santiago", "Federico"];
+const ACC_DATA     = [23.0, 3.7, 0.5, -11.2, -16.7];
+const PIPE_DATA    = [28, 21, 24, 10, 4, 4];
+const PIPE_COLORS  = ["#00A650","#009EE3","#7B68EE","#FF7733","#FFB300","#F23D4F"];
+
+function initChart(n){if(charts[n])return;charts[n]=true;if(n===5)initPerf();if(n===6)initPipe();if(n===12)initAcc();}
+function usd(v){return"$"+(v/1000).toFixed(0)+"K";}
+
+function initPerf(){
+  const totalLabelPlugin={
+    id:"totalLabel",
+    afterDatasetsDraw(chart){
+      const ctx=chart.ctx;
+      const metaNew=chart.getDatasetMeta(1);
+      metaNew.data.forEach((bar,i)=>{
+        const base=LINEAL_BASE[i]||0;
+        const nw=NEW_DATA[i]||0;
+        const tot=base+nw;
+        if(tot===0)return;
+        const lbl="$"+(tot>=1e6?(tot/1e6).toFixed(1)+"M":(tot/1000).toFixed(0)+"K");
+        ctx.save();
+        ctx.font="bold 11px 'Segoe UI',sans-serif";
+        ctx.fillStyle="#1C2B59";
+        ctx.textAlign="center";
+        ctx.fillText(lbl,bar.x,bar.y-5);
+        ctx.restore();
+      });
+    }
+  };
+  new Chart(document.getElementById("cPerf").getContext("2d"),{
+    plugins:[totalLabelPlugin],
+    data:{labels:CHART_LABELS,datasets:[
+      {type:"line",label:"Objetivo",yAxisID:"y",data:OBJ_DATA,borderColor:"#F23D4F",backgroundColor:"transparent",borderWidth:2.5,borderDash:[6,5],pointBackgroundColor:"#F23D4F",pointRadius:5,tension:0,order:0},
+      {type:"bar",label:"Lineal (base)",stack:"t",data:LINEAL_BASE,backgroundColor:"#009EE3",borderRadius:4,order:1},
+      {type:"bar",label:"New (dentro del lineal)",stack:"t",data:NEW_DATA,backgroundColor:"#00A650",borderRadius:4,order:1}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:"top",labels:{font:{size:12},padding:14}},tooltip:{callbacks:{label:c=>c.dataset.label+": $"+c.parsed.y.toLocaleString("en-US")}}},scales:{x:{stacked:true,grid:{display:false},ticks:{font:{size:12}}},y:{stacked:true,grid:{color:"#EEF3FF"},suggestedMax:Math.max(...OBJ_DATA.filter(v=>v))*1.2,ticks:{font:{size:11},callback:v=>usd(v)}}}}
+  });
+}
+
+function initPipe(){
+  new Chart(document.getElementById("cPipe").getContext("2d"),{
+    type:"doughnut",
+    data:{labels:["Cerrada Ganada","Prop. Enviada","Interesado","Configuración","Roll Out","Cerrada Perdida"],datasets:[{data:PIPE_DATA,backgroundColor:PIPE_COLORS,borderWidth:3,borderColor:"#fff",hoverOffset:10}]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:"62%",plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.label+": "+c.parsed+" cuentas"}}}}
+  });
+}
+
+function initAcc(){
+  new Chart(document.getElementById("cAcc").getContext("2d"),{
+    type:"bar",
+    data:{labels:ACC_LABELS,datasets:[{label:"Desviación promedio vs Forecast",data:ACC_DATA,backgroundColor:ACC_DATA.map(v=>v>0?"rgba(0,166,80,.75)":"rgba(242,61,79,.75)"),borderRadius:6,barThickness:24}]},
+    options:{indexAxis:"y",responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>(c.parsed.x>0?"+":"")+c.parsed.x.toFixed(1)+"%"}}},scales:{x:{grid:{color:"#EEF3FF"},ticks:{font:{size:11},callback:v=>(v>0?"+":"")+v+"%"}},y:{grid:{display:false},ticks:{font:{size:12}}}}}
+  });
+}
+</script>
+</body>
+</html>

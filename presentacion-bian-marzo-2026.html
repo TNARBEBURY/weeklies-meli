@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Seguimiento Comercial · Marzo 2026 · Bian</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+:root {
+  --blue:#009EE3; --dark:#1C2B59; --yellow:#FFE600;
+  --green:#00A650; --red:#F23D4F; --orange:#FF7733;
+  --gray:#8492A6; --bg:#F5F7FA; --text:#1a2640;
+}
+body { font-family:'Segoe UI',system-ui,sans-serif; background:var(--dark); overflow:hidden; height:100vh; width:100vw; color:var(--text); }
+.slide { display:none; position:absolute; inset:0; padding:36px 56px; flex-direction:column; animation:fadeUp .35s ease both; }
+.slide.active { display:flex; }
+@keyframes fadeUp { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:translateY(0)} }
+#progressBar { position:fixed; top:0; left:0; height:3px; background:var(--blue); transition:width .3s; z-index:999; }
+.dots { position:fixed; bottom:22px; left:50%; transform:translateX(-50%); display:flex; gap:8px; z-index:999; }
+.dot { width:7px; height:7px; border-radius:50%; background:rgba(255,255,255,.3); cursor:pointer; transition:all .2s; }
+.dot.on { background:#fff; transform:scale(1.35); }
+.navbtns { position:fixed; bottom:16px; right:28px; display:flex; gap:10px; align-items:center; z-index:999; }
+.nbtn { width:40px; height:40px; border-radius:50%; border:none; cursor:pointer; font-size:16px; display:flex; align-items:center; justify-content:center; background:rgba(255,255,255,.15); color:#fff; backdrop-filter:blur(8px); transition:all .2s; }
+.nbtn:hover { background:rgba(255,255,255,.3); transform:scale(1.08); }
+.nbtn:disabled { opacity:.25; cursor:not-allowed; transform:none; }
+.ncnt { font-size:12px; color:rgba(255,255,255,.6); font-weight:600; }
+.kbdhint { position:fixed; bottom:26px; left:28px; font-size:11px; color:rgba(255,255,255,.3); z-index:999; }
+.tag { font-size:11px; font-weight:700; letter-spacing:2px; text-transform:uppercase; color:var(--blue); margin-bottom:6px; }
+.tag-w { color:rgba(255,255,255,.5); }
+.h1 { font-size:28px; font-weight:800; color:var(--text); }
+.h1-w { color:#fff; }
+.sheader { margin-bottom:22px; flex-shrink:0; }
+.card { background:rgba(255,255,255,0.6); border-radius:12px; padding:18px 20px; box-shadow:0 2px 12px rgba(0,0,0,.06); }
+.tbl { width:100%; border-collapse:collapse; font-size:13px; }
+.tbl th { background:rgba(180,200,255,0.4); color:var(--gray); font-size:10.5px; font-weight:700; text-transform:uppercase; letter-spacing:.5px; padding:9px 12px; text-align:left; border-bottom:2px solid #DDE6F8; }
+.tbl td { padding:10px 12px; border-bottom:1px solid #EEF3FF; }
+.tbl tr:last-child td { border-bottom:none; }
+.tbl tr:hover td { background:rgba(255,255,255,0.5); }
+.b { display:inline-block; padding:3px 10px; border-radius:12px; font-size:11.5px; font-weight:700; }
+.bg { background:#E6F7EE; color:var(--green); }
+.br { background:#FFF0F2; color:var(--red); }
+.bo { background:#FFF4E6; color:var(--orange); }
+.bb { background:#E6F4FF; color:var(--blue); }
+#s1 { background:linear-gradient(135deg,#009EE3 0%,#1C2B59 55%,#080d1e 100%); justify-content:center; align-items:flex-start; padding:80px; color:#fff; }
+.logo { position:fixed; top:18px; right:24px; z-index:998; }
+.ctag { background:rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.25); color:#fff; padding:5px 16px; border-radius:20px; font-size:11px; letter-spacing:2.5px; text-transform:uppercase; margin-bottom:22px; display:inline-block; }
+.ctitle { font-size:50px; font-weight:900; line-height:1.08; margin-bottom:14px; }
+.ctitle span { color:var(--yellow); }
+.csub { font-size:18px; opacity:.7; margin-bottom:44px; }
+.cstats { display:flex; gap:44px; }
+.cstat { border-left:3px solid rgba(255,255,255,.3); padding-left:18px; }
+.cstat-v { font-size:30px; font-weight:800; }
+.cstat-l { font-size:12px; opacity:.6; margin-top:2px; }
+#s2 { background:var(--bg); }
+.metgrid { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:20px; flex-shrink:0; }
+.mcard { background:rgba(255,255,255,0.6); border-radius:12px; padding:16px 18px; box-shadow:0 2px 8px rgba(0,0,0,.05); border-top:3px solid var(--blue); }
+.mv { font-size:24px; font-weight:800; line-height:1.1; }
+.ml { font-size:11.5px; color:var(--gray); margin-top:4px; font-weight:500; }
+.md { font-size:12px; font-weight:600; margin-top:5px; }
+#s3 { background:var(--bg); }
+.chartbox { position:relative; flex:1; min-height:0; }
+#s4 { background:var(--bg); }
+.pipcols { display:grid; grid-template-columns:1fr 1.4fr; gap:20px; flex:1; min-height:0; }
+.flist { display:flex; flex-direction:column; gap:8px; }
+.fi { display:flex; align-items:center; gap:12px; padding:10px 14px; background:rgba(255,255,255,0.6); border-radius:8px; box-shadow:0 1px 4px rgba(0,0,0,.04); }
+.fdot { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
+.flbl { font-size:13px; font-weight:600; flex:1; }
+.fcnt { font-size:22px; font-weight:800; }
+.fusd { font-size:11px; color:var(--gray); }
+.pipcols-right { display:flex; flex-direction:column; gap:14px; min-height:0; }
+#s5 { background:var(--bg); }
+.acccols { display:grid; grid-template-columns:1.2fr 1fr; gap:20px; flex:1; min-height:0; }
+.accright { display:flex; flex-direction:column; gap:10px; }
+.acard { background:rgba(255,255,255,0.6); border-radius:10px; padding:14px 16px; box-shadow:0 2px 8px rgba(0,0,0,.05); }
+#s6 { background:var(--bg); }
+.divgrid { display:grid; grid-template-columns:1fr 1fr; gap:12px; flex:1; }
+.dcard { background:rgba(255,255,255,0.6); border-radius:12px; padding:16px 18px; box-shadow:0 2px 8px rgba(0,0,0,.05); border-left:4px solid; display:flex; flex-direction:column; gap:5px; }
+.dcard.pos { border-color:var(--green); }
+.dcard.neg { border-color:var(--red); }
+.dcard.neu { border-color:var(--orange); }
+.dhunter { font-size:11px; color:var(--gray); text-transform:uppercase; letter-spacing:.5px; }
+.dtitle { font-size:14px; font-weight:700; }
+.dbig { font-size:22px; font-weight:900; margin-top:4px; }
+.ddet { font-size:12px; color:var(--gray); line-height:1.4; }
+#s7 { background:var(--bg); }
+.ablk { border-radius:10px; padding:12px 16px; margin-bottom:12px; flex-shrink:0; }
+.ablk-red { background:rgba(255,255,255,0.6); border:1px solid #FFCDD4; }
+.ablk-yel { background:rgba(255,255,255,0.6); border:1px solid #FFE082; }
+.ablk-grn { background:rgba(255,255,255,0.6); border:1px solid #A7EFC5; }
+.ablk-ttl { font-size:13px; font-weight:700; margin-bottom:8px; }
+.chips { display:flex; flex-wrap:wrap; gap:8px; margin-top:4px; }
+.chip { background:rgba(255,255,255,0.6); padding:5px 12px; border-radius:6px; border:1px solid #DDE6F8; font-size:12px; }
+#s8 { background:linear-gradient(135deg,#1C2B59 0%,#08111f 100%); }
+.nsgrid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px; flex:1; }
+.nscard { background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.1); border-radius:12px; padding:18px; }
+.nsnum { font-size:34px; font-weight:900; color:var(--blue); opacity:.55; line-height:1; }
+.nstit { font-size:15px; font-weight:700; color:#fff; margin:8px 0 6px; }
+.nsdesc { font-size:12.5px; color:rgba(255,255,255,.58); line-height:1.5; }
+</style>
+</head>
+<body>
+<div id="progressBar"></div>
+<div class="logo">
+  <img src="C:/Users/tomnarbebury/Downloads/LOGO MP FONDO AMARILLO.jpg" alt="Mercado Pago" style="height:44px;border-radius:8px;"/>
+</div>
+
+<!-- ━━━━━━━━━━━━ SLIDE 1: COVER ━━━━━━━━━━━━ -->
+<div class="slide active" id="s1">
+  <div class="ctag">Hunting Instore · Point &amp; QR</div>
+  <div class="ctitle">Seguimiento<br>Comercial<br><span>Marzo 2026</span></div>
+  <div class="csub">Equipo de Bian · 7 Hunters · Semana 2</div>
+  <div class="cstats">
+    <div class="cstat">
+      <div class="cstat-v">$8.5M</div>
+      <div class="cstat-l">Proyección lineal al cierre</div>
+    </div>
+    <div class="cstat">
+      <div class="cstat-v">$2.97M</div>
+      <div class="cstat-l">Objetivo del mes</div>
+    </div>
+    <div class="cstat" style="border-color:rgba(0,166,80,.7)">
+      <div class="cstat-v" style="color:#4dff9e">+186%</div>
+      <div class="cstat-l">vs Objetivo (Lineal)</div>
+    </div>
+  </div>
+</div>
+
+<!-- ━━━━━━━━━━━━ SLIDE 2: RESUMEN EQUIPO ━━━━━━━━━━━━ -->
+<div class="slide" id="s2" style="background:#FFE600">
+  <div class="sheader">
+    <div class="tag">Marzo 2026 · Semana 2</div>
+    <div class="h1">¿Cómo está el equipo?</div>
+  </div>
+  <div class="metgrid">
+    <div class="mcard" style="border-top-color:var(--blue)">
+      <div class="mv">$3.0M</div>
+      <div class="ml">TPV Current</div>
+      <div class="md" style="color:var(--blue)">Cuentas mes −1 y −2</div>
+    </div>
+    <div class="mcard" style="border-top-color:var(--green)">
+      <div class="mv">$1.57M</div>
+      <div class="ml">TPV New estimado</div>
+      <div class="md" style="color:var(--green)">5 hunters con cierre proyectado</div>
+    </div>
+    <div class="mcard" style="border-top-color:var(--dark)">
+      <div class="mv">$8.50M</div>
+      <div class="ml">Proyección lineal al cierre</div>
+      <div class="md" style="color:var(--gray)">Al ritmo actual de marzo</div>
+    </div>
+    <div class="mcard" style="border-top-color:var(--green)">
+      <div class="mv" style="color:var(--green)">+186%</div>
+      <div class="ml">vs Objetivo ($2.97M)</div>
+      <div class="md" style="color:var(--green)">Gap positivo de $5.53M</div>
+    </div>
+  </div>
+  <div class="card" style="flex:1;overflow:auto">
+    <table class="tbl">
+      <thead>
+        <tr><th>Hunter</th><th>Current</th><th>New</th><th>Total</th><th>Objetivo</th><th>% vs Obj</th><th>Estado</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Federico Perez</strong></td>
+          <td>$320,705</td><td style="color:var(--green);font-weight:700">$565,000</td>
+          <td><strong>$885,705</strong></td><td>$233,333</td>
+          <td><strong style="color:var(--green)">+459%</strong></td>
+          <td><span class="b bg">🟢 En camino</span></td>
+        </tr>
+        <tr>
+          <td><strong>Martha Vautier</strong></td>
+          <td>$1,854,171</td><td style="color:var(--green);font-weight:700">$575,000</td>
+          <td><strong>$2,429,171</strong></td><td>$933,333</td>
+          <td><strong style="color:var(--green)">+420%</strong></td>
+          <td><span class="b bg">🟢 En camino</span></td>
+        </tr>
+        <tr>
+          <td><strong>Carolina Cruz</strong></td>
+          <td>$451,065</td><td style="color:var(--gray)">—</td>
+          <td><strong>$451,065</strong></td><td>$466,667</td>
+          <td><strong style="color:var(--green)">+123%</strong></td>
+          <td><span class="b bg">🟢 En camino</span></td>
+        </tr>
+        <tr>
+          <td><strong>Santiago Leaniz</strong></td>
+          <td>$207,522</td><td style="color:var(--green);font-weight:700">$150,000</td>
+          <td><strong>$357,522</strong></td><td>$666,667</td>
+          <td><strong style="color:var(--orange)">−6%</strong></td>
+          <td><span class="b bo">🟡 En seguimiento</span></td>
+        </tr>
+        <tr>
+          <td><strong>Tomas Melis</strong></td>
+          <td>$170,672</td><td style="color:var(--green);font-weight:700">$125,000</td>
+          <td><strong>$295,672</strong></td><td>$666,667</td>
+          <td><strong style="color:var(--red)">−22%</strong></td>
+          <td><span class="b br">🔴 En riesgo</span></td>
+        </tr>
+        <tr>
+          <td><strong>Willem Goodridge</strong></td>
+          <td style="color:var(--gray)">—</td><td style="color:var(--gray)">—</td>
+          <td style="color:var(--gray)">—</td><td style="color:var(--gray)">—</td>
+          <td style="color:var(--gray)">—</td>
+          <td><span class="b bb">🔵 Sin objetivo</span></td>
+        </tr>
+        <tr>
+          <td><strong>Camila Paletta</strong></td>
+          <td style="color:var(--gray)">—</td><td style="color:var(--green);font-weight:700">$150,000</td>
+          <td><strong>$150,000</strong></td><td style="color:var(--gray)">—</td>
+          <td style="color:var(--gray)">—</td>
+          <td><span class="b bb">🔵 Sin objetivo</span></td>
+        </tr>
+        <tr style="background:rgba(180,200,255,0.4)">
+          <td><strong>TOTAL EQUIPO</strong></td>
+          <td><strong>$3,004,135</strong></td><td><strong>$1,565,000</strong></td>
+          <td><strong>$4,569,135</strong></td><td><strong>$2,966,667</strong></td>
+          <td><strong style="color:var(--green)">+186%</strong></td>
+          <td><span class="b bg">🟢 Por encima</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ━━━━━━━━━━━━ SLIDE 3: PERFORMANCE CHART ━━━━━━━━━━━━ -->
+<div class="slide" id="s3" style="background:#FFE600">
+  <div class="sheader">
+    <div class="tag">Performance · Marzo 2026</div>
+    <div class="h1">Proyección Lineal vs Objetivo (desglose de New dentro del Lineal)</div>
+  </div>
+  <div class="chartbox">
+    <canvas id="chartPerf"></canvas>
+  </div>
+</div>
+
+<!-- ━━━━━━━━━━━━ SLIDE 4: PIPELINE ━━━━━━━━━━━━ -->
+<div class="slide" id="s4" style="background:#FFE600">
+  <div class="sheader">
+    <div class="tag">Forecast Anual · Pipeline</div>
+    <div class="h1">Estado del pipeline — ~97 cuentas totales</div>
+  </div>
+  <div class="pipcols">
+    <div class="flist">
+      <div class="fi"><div class="fdot" style="background:#00A650"></div><div class="flbl">Cerrada Ganada</div><div><div class="fcnt" style="color:#00A650">27</div><div class="fusd">cuentas</div></div></div>
+      <div class="fi"><div class="fdot" style="background:#009EE3"></div><div class="flbl">Propuesta Enviada</div><div><div class="fcnt" style="color:#009EE3">21</div><div class="fusd">cuentas</div></div></div>
+      <div class="fi"><div class="fdot" style="background:#7B68EE"></div><div class="flbl">Interesado</div><div><div class="fcnt" style="color:#7B68EE">31</div><div class="fusd">cuentas</div></div></div>
+      <div class="fi"><div class="fdot" style="background:#FF7733"></div><div class="flbl">Configuración</div><div><div class="fcnt" style="color:#FF7733">10</div><div class="fusd">cuentas</div></div></div>
+      <div class="fi"><div class="fdot" style="background:#FFB300"></div><div class="flbl">Roll Out / Follow Up</div><div><div class="fcnt" style="color:#FFB300">4</div><div class="fusd">cuentas</div></div></div>
+      <div class="fi"><div class="fdot" style="background:#F23D4F"></div><div class="flbl">Cerrada Perdida</div><div><div class="fcnt" style="color:#F23D4F">4</div><div class="fusd">cuentas</div></div></div>
+    </div>
+    <div class="pipcols-right">
+      <div class="card" style="flex:1;min-height:0;display:flex;flex-direction:column">
+        <div style="font-size:12px;font-weight:700;color:var(--gray);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px">Distribución del pipeline</div>
+        <div class="chartbox" style="flex:1">
+          <canvas id="chartPipe"></canvas>
+        </div>
+      </div>
+      <div class="card" style="padding:14px 16px">
+        <div style="font-size:12px;font-weight:700;color:var(--gray);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px">TPV potencial en pipeline activo</div>
+        <div style="display:grid;grid-template-columns:1fr auto;gap:4px 16px;font-size:12.5px;align-items:center">
+          <span>Federico Perez</span><span style="font-weight:800;color:var(--dark)">$5.0M</span>
+          <span>Tomas Melis</span><span style="font-weight:800;color:var(--dark)">$3.0M</span>
+          <span>Camila Paletta</span><span style="font-weight:800;color:var(--dark)">$2.7M</span>
+          <span>Carolina Cruz</span><span style="font-weight:800;color:var(--dark)">$2.6M</span>
+          <span>Willem Goodridge</span><span style="font-weight:800;color:var(--dark)">$1.3M</span>
+          <span>Santiago Leaniz</span><span style="font-weight:800;color:var(--dark)">$1.5M</span>
+          <span>Martha Vautier</span><span style="font-weight:800;color:var(--dark)">$0.5M</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ━━━━━━━━━━━━ SLIDE 5: FORECAST ACCURACY ━━━━━━━━━━━━ -->
+<div class="slide" id="s5" style="background:#FFE600">
+  <div class="sheader">
+    <div class="tag">Análisis de Forecast · Ene–Mar 2026</div>
+    <div class="h1">¿Qué tan bien forecastean los hunters?</div>
+  </div>
+  <div class="acccols">
+    <div class="card" style="display:flex;flex-direction:column">
+      <div style="font-size:12px;font-weight:700;color:var(--gray);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px">Desviación promedio Forecast vs Real (%)</div>
+      <div class="chartbox" style="flex:1">
+        <canvas id="chartAcc"></canvas>
+      </div>
+      <div style="font-size:11px;color:var(--gray);margin-top:8px">
+        Verde = subestima (conservador) · Rojo = sobreestima (optimista)
+      </div>
+    </div>
+    <div class="accright">
+      <div class="acard" style="border-left:4px solid var(--red)">
+        <div style="font-size:10.5px;color:var(--gray);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Más optimistas (sobreestiman)</div>
+        <div style="font-size:22px;font-weight:900;color:var(--red)">Camila −42% · Santiago −32%</div>
+        <div style="font-size:12px;color:var(--gray);margin-top:4px">Dimax cayendo −86% en marzo (Santiago)<br>Three Provincias: forecast $125K → real $3.9K</div>
+      </div>
+      <div class="acard" style="border-left:4px solid var(--green)">
+        <div style="font-size:10.5px;color:var(--gray);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Más conservadora (subestima)</div>
+        <div style="font-size:22px;font-weight:900;color:var(--green)">Martha +25%</div>
+        <div style="font-size:12px;color:var(--gray);margin-top:4px">Impulsada por Autovia Mercosur<br>+47% sobre forecast en marzo</div>
+      </div>
+      <div class="acard" style="border-left:4px solid var(--blue)">
+        <div style="font-size:10.5px;color:var(--gray);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Más calibrado</div>
+        <div style="font-size:22px;font-weight:900;color:var(--blue)">Tomas −6.5%</div>
+        <div style="font-size:12px;color:var(--gray);margin-top:4px">El que más se acerca a la realidad<br>San Jose bajando pero dentro de rango</div>
+      </div>
+      <div class="acard" style="background:#FFFBEC;border:1px solid #FFE082">
+        <div style="font-size:12px;color:#7A6010;line-height:1.5">
+          <strong>⚡ Alerta en Santiago:</strong> <strong>Dimax</strong> tenía forecast de $650K en marzo y realizó sólo $94K (−86%). De ser el ancla del equipo Sur pasó a ser el mayor riesgo. Requiere revisión urgente del acuerdo.
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ━━━━━━━━━━━━ SLIDE 6: TOP DIVERGENCIAS ━━━━━━━━━━━━ -->
+<div class="slide" id="s6" style="background:#FFE600">
+  <div class="sheader">
+    <div class="tag">Top Divergencias · Forecast vs Real</div>
+    <div class="h1">Las mayores sorpresas del trimestre</div>
+  </div>
+  <div class="divgrid">
+    <div class="dcard neg">
+      <div class="dhunter">Santiago · Dimax · Marzo</div>
+      <div class="dtitle">Caída crítica #1 — cuenta ancla</div>
+      <div class="dbig" style="color:var(--red)">−86%</div>
+      <div class="ddet">Forecast $650K → Real <strong>$94K</strong><br>Dimax fue el ancla de enero ($579K) y febrero ($375K). En marzo se desplomó. Sin plan de recuperación esta cuenta arrastra a Santiago. Investigar causa raíz.</div>
+    </div>
+    <div class="dcard pos">
+      <div class="dhunter">Martha · Autovía Mercosur · Feb–Mar</div>
+      <div class="dtitle">Sorpresa positiva #1</div>
+      <div class="dbig" style="color:var(--green)">+53%</div>
+      <div class="ddet">Feb F=$125K → R=$198K · Mar F=$250K → R=$369K<br>Utilities en roll out con 20 locales. La incorporación tardía al forecast la hace aparecer como blind spot positivo. Potencial adicional estimado: $500K/mes.</div>
+    </div>
+    <div class="dcard neg">
+      <div class="dhunter">Carolina · Verduleria de la Tierra · Marzo</div>
+      <div class="dtitle">Caída abrupta #2 — $0 real</div>
+      <div class="dbig" style="color:var(--red)">−100%</div>
+      <div class="ddet">Forecast $200K → Real <strong>$0</strong> en marzo<br>Enero fue $718K, febrero $115K, marzo $0. Caída libre en Q1. ¿Migró a otro medio de pago? Revisar estado de la cuenta con urgencia.</div>
+    </div>
+    <div class="dcard neg">
+      <div class="dhunter">Camila · Three Provincias · Marzo</div>
+      <div class="dtitle">Caída crítica #3</div>
+      <div class="dbig" style="color:var(--red)">−97%</div>
+      <div class="ddet">Forecast $125K → Real <strong>$3.9K</strong><br>Principal driver del −42% de accuracy de Camila. Cuenta de seguros en configuración que genera casi nada. Ajustar expectativas o revisar si el modelo de negocio es compatible.</div>
+    </div>
+    <div class="dcard neg">
+      <div class="dhunter">Santiago · Lemaya Distribuciones · Marzo</div>
+      <div class="dtitle">Declive sostenido</div>
+      <div class="dbig" style="color:var(--red)">−67%</div>
+      <div class="ddet">Forecast $200K → Real <strong>$65K</strong><br>Tendencia bajista desde enero ($126K) → feb ($163K) → mar ($65K). Junto con Dimax, Santiago tiene dos cuentas grandes en caída simultánea.</div>
+    </div>
+    <div class="dcard neg">
+      <div class="dhunter">Tomas · San Jose · Marzo</div>
+      <div class="dtitle">Bajo forecast en Q1</div>
+      <div class="dbig" style="color:var(--red)">−43%</div>
+      <div class="ddet">Forecast $300K → Real <strong>$171K</strong><br>Enero y febrero superaron forecast ($545K y $711K), pero marzo cayó fuerte. Si el roll out terminó, TPV puede haber normalizado. Evaluar forecast de Q2.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ━━━━━━━━━━━━ SLIDE 7: ALERTAS ━━━━━━━━━━━━ -->
+<div class="slide" id="s7" style="background:#FFE600">
+  <div class="sheader">
+    <div class="tag">Alertas · Cuentas Críticas</div>
+    <div class="h1">Cuentas que necesitan acción inmediata</div>
+  </div>
+  <div style="flex:1;display:flex;flex-direction:column;gap:12px;overflow:auto">
+    <div class="ablk ablk-red">
+      <div class="ablk-ttl" style="color:var(--red)">🔴 Dimax en caída libre — Santiago necesita plan B urgente</div>
+      <div style="font-size:13px;color:#6B0010;line-height:1.7">
+        <strong>Dimax</strong> era la cuenta más grande del equipo Sur ($579K en enero, $375K en febrero). En marzo cayó a $94K (−86%). Santiago tiene forecast de $650K para los meses restantes y si esta cuenta no recupera, su número del año está en riesgo.<br>
+        <span style="color:var(--gray)">→ Reunión con Dimax esta semana. Identificar causa de la caída y definir si hay plan de recuperación o si hay que recalibrar forecast a $100K/mes.</span>
+      </div>
+    </div>
+    <div class="ablk ablk-yel">
+      <div class="ablk-ttl" style="color:#8B6914">⚠️ Carolina, Willem y Camila sin New activo o con $0 Current</div>
+      <div style="font-size:13px;color:#6B5B00;line-height:1.7">
+        <strong>Carolina</strong> tiene $0 en New. Su proyección depende del Current ($451K) y de cuentas como Narrow e Hiperceramico que están en configuración. <strong>Willem</strong> lleva sin Current desde inicio y sin objetivo. <strong>Camila</strong> también sin Current — toda su apuesta en $150K New.<br>
+        <span style="color:var(--gray)">→ Definir deal list con ETA para Carolina. Para Willem y Camila: establecer objetivo y checkpoint semanal.</span>
+      </div>
+    </div>
+    <div class="ablk ablk-grn">
+      <div class="ablk-ttl" style="color:#00663A">✅ Mayor potencial en pipeline activo — foco para Q2</div>
+      <div class="chips">
+        <div class="chip"><strong>Scandinavian</strong> · Federico · $1.5M</div>
+        <div class="chip"><strong>MAURO-SERGIO MDQ</strong> · Tomas · $700K</div>
+        <div class="chip"><strong>Hotel Hyatt</strong> · Federico · $400K</div>
+        <div class="chip"><strong>Dante Pinturerias</strong> · Santiago · $400K</div>
+        <div class="chip"><strong>Estancia Chiripa</strong> · Carolina · $500K</div>
+        <div class="chip"><strong>Bachino</strong> · Camila · $600K</div>
+        <div class="chip"><strong>Mega Shop</strong> · Federico · $700K</div>
+        <div class="chip"><strong>MEGAMAYORISTA</strong> · Willem · $500K</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ━━━━━━━━━━━━ SLIDE 8: NEXT STEPS ━━━━━━━━━━━━ -->
+<div class="slide" id="s8">
+  <div class="sheader">
+    <div class="tag tag-w">Accionables</div>
+    <div class="h1 h1-w">Próximos pasos para el equipo</div>
+  </div>
+  <div class="nsgrid">
+    <div class="nscard">
+      <div class="nsnum">01</div>
+      <div class="nstit">Reunión urgente con Dimax</div>
+      <div class="nsdesc">Cayó de $375K en febrero a $94K en marzo. Con forecast de $650K mensual para el resto del año, la brecha es crítica. Identificar causa raíz esta semana y decidir: plan de recuperación o recalibrar expectativas a la baja.</div>
+    </div>
+    <div class="nscard">
+      <div class="nsnum">02</div>
+      <div class="nstit">Investigar Verduleria de la Tierra</div>
+      <div class="nsdesc">$0 de TPV en marzo cuando enero fue $718K. Caída abrupta sin explicación en el forecast. ¿Migró a otro procesador? ¿Cierre temporal? Acción inmediata antes de que marzo cierre y la cuenta quede como Cerrada Perdida.</div>
+    </div>
+    <div class="nscard">
+      <div class="nsnum">03</div>
+      <div class="nstit">Activar New para Carolina y Willem</div>
+      <div class="nsdesc">Carolina con $0 New y Willem sin ningún número. Narrow, Hiperceramico y Lagus están en configuración —  al menos una debería convertirse en cierre este mes. Definir ETA concreto con ambos hunters antes del jueves.</div>
+    </div>
+    <div class="nscard">
+      <div class="nsnum">04</div>
+      <div class="nstit">Desbloquear configuraciones con ETA abril</div>
+      <div class="nsdesc">Autoshop AT (Santiago), Credi Guia (Federico) y Maberon (Santiago) tienen ETA en abril pero llevan semanas trabados. Combinan +$500K de potencial mensual. Revisar qué bloquea cada uno y escalar si es necesario.</div>
+    </div>
+    <div class="nscard">
+      <div class="nsnum">05</div>
+      <div class="nstit">Recalibrar forecast de Santiago y Camila</div>
+      <div class="nsdesc">Santiago sobreestima −32% (Dimax y Lemaya en caída). Camila sobreestima −42% (Three Provincias en casi $0). Antes de cargar el forecast de abril, revisión 1:1 con cada uno para ajustar las cuentas que no están performando.</div>
+    </div>
+    <div class="nscard">
+      <div class="nsnum">06</div>
+      <div class="nstit">Activar pipeline de Tomas para Q2</div>
+      <div class="nsdesc">San Jose normalizó (post roll out), lo que baja su Current. Para no depender del mismo cliente, activar MAURO-SERGIO MDQ ($700K) y Puelche Mayorista ($300K), las dos cuentas más grandes en Interesado de Tomas.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ━━━━━━━━━━━━ CONTROLES ━━━━━━━━━━━━ -->
+<div class="dots" id="dots"></div>
+<div class="navbtns">
+  <button class="nbtn" id="prev" onclick="go(-1)" disabled>←</button>
+  <span class="ncnt" id="cnt">1 / 8</span>
+  <button class="nbtn" id="next" onclick="go(1)">→</button>
+</div>
+<div class="kbdhint">← → para navegar · clic en puntos para saltar</div>
+
+<script>
+const TOTAL = 8;
+let cur = 1;
+const charts = {};
+const dotsEl = document.getElementById('dots');
+for (let i = 1; i <= TOTAL; i++) {
+  const d = document.createElement('div');
+  d.className = 'dot' + (i===1?' on':'');
+  d.onclick = () => jump(i);
+  dotsEl.appendChild(d);
+}
+function jump(n) {
+  document.getElementById('s'+cur).classList.remove('active');
+  dotsEl.children[cur-1].classList.remove('on');
+  cur = n;
+  document.getElementById('s'+cur).classList.add('active');
+  dotsEl.children[cur-1].classList.add('on');
+  document.getElementById('cnt').textContent = cur+' / '+TOTAL;
+  document.getElementById('prev').disabled = cur===1;
+  document.getElementById('next').disabled = cur===TOTAL;
+  document.getElementById('progressBar').style.width = (cur/TOTAL*100)+'%';
+  setTimeout(()=>initChart(cur), 60);
+}
+function go(d){ const n=cur+d; if(n>=1&&n<=TOTAL) jump(n); }
+document.addEventListener('keydown', e=>{
+  if(e.key==='ArrowRight'||e.key==='ArrowDown') go(1);
+  if(e.key==='ArrowLeft'||e.key==='ArrowUp') go(-1);
+});
+document.getElementById('progressBar').style.width = (1/TOTAL*100)+'%';
+
+function initChart(n) {
+  if (charts[n]) return;
+  charts[n] = true;
+  if (n===3) initPerf();
+  if (n===4) initPipe();
+  if (n===5) initAcc();
+}
+function usd(v){ return '$'+(v/1000).toFixed(0)+'K'; }
+
+function initPerf(){
+  const ctx = document.getElementById('chartPerf').getContext('2d');
+  // Lineal = base (sin New) + New. Total barra = Lineal.
+  const lineal  = [4853856, 1305088, 1040919, 628897, 518860, 150000];
+  const newTpv  = [575000,  565000,  0,       150000, 125000, 150000];
+  const base    = lineal.map((l,i) => l - newTpv[i]);
+  new Chart(ctx,{
+    data:{
+      labels:['Martha','Federico','Carolina','Santiago','Tomas','Camila'],
+      datasets:[
+        { type:'bar', label:'Lineal (base)', stack:'t',
+          data: base,
+          backgroundColor:'#009EE3', borderRadius:4 },
+        { type:'bar', label:'New (dentro del lineal)', stack:'t',
+          data: newTpv,
+          backgroundColor:'#00A650', borderRadius:4 },
+        { type:'line', label:'Objetivo', yAxisID:'y',
+          data:[933333, 233333, 466667, 666667, 666667, null],
+          borderColor:'#F23D4F', backgroundColor:'transparent',
+          borderWidth:2.5, borderDash:[6,5],
+          pointBackgroundColor:'#F23D4F', pointRadius:5, tension:0, order:0 }
+      ]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{
+        legend:{ position:'top', labels:{ font:{size:12}, padding:14 }},
+        tooltip:{ callbacks:{ label: c => c.dataset.label+': $'+c.parsed.y.toLocaleString('en-US') }}
+      },
+      scales:{
+        x:{ stacked:true, grid:{display:false}, ticks:{font:{size:12}} },
+        y:{ stacked:true, grid:{color:'#EEF3FF'},
+          ticks:{ font:{size:11}, callback:v=>usd(v) }}
+      }
+    }
+  });
+}
+
+function initPipe(){
+  const ctx = document.getElementById('chartPipe').getContext('2d');
+  new Chart(ctx,{
+    type:'doughnut',
+    data:{
+      labels:['Cerrada Ganada','Prop. Enviada','Interesado','Configuración','Roll Out/Follow Up','Cerrada Perdida'],
+      datasets:[{
+        data:[27,21,31,10,4,4],
+        backgroundColor:['#00A650','#009EE3','#7B68EE','#FF7733','#FFB300','#F23D4F'],
+        borderWidth:3, borderColor:'#fff', hoverOffset:10
+      }]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      cutout:'62%',
+      plugins:{
+        legend:{ display:false },
+        tooltip:{ callbacks:{ label: c=>c.label+': '+c.parsed+' cuentas' }}
+      }
+    }
+  });
+}
+
+function initAcc(){
+  const ctx = document.getElementById('chartAcc').getContext('2d');
+  const raw=[
+    {n:'Martha', v:25.2},{n:'Tomas',v:-6.5},{n:'Carolina',v:-8.3},
+    {n:'Federico',v:-15.4},{n:'Willem',v:-22.7},{n:'Santiago',v:-32.1},{n:'Camila',v:-42.4}
+  ];
+  new Chart(ctx,{
+    type:'bar',
+    data:{
+      labels: raw.map(d=>d.n),
+      datasets:[{
+        label:'Desviación promedio vs Forecast',
+        data: raw.map(d=>d.v),
+        backgroundColor: raw.map(d=>d.v>0?'rgba(0,166,80,.75)':'rgba(242,61,79,.75)'),
+        borderRadius:6, barThickness:24
+      }]
+    },
+    options:{
+      indexAxis:'y',
+      responsive:true, maintainAspectRatio:false,
+      plugins:{
+        legend:{ display:false },
+        tooltip:{ callbacks:{ label: c=>(c.parsed.x>0?'+':'')+c.parsed.x.toFixed(1)+'%' }}
+      },
+      scales:{
+        x:{ grid:{color:'#EEF3FF'}, ticks:{ font:{size:11}, callback:v=>(v>0?'+':'')+v+'%' }},
+        y:{ grid:{display:false}, ticks:{ font:{size:12} }}
+      }
+    }
+  });
+}
+</script>
+</body>
+</html>
