@@ -343,21 +343,21 @@ function renderRotacion(d){
     const nnFmt=nn&&nn>0?fmtN(nn):(nn===null||nn===undefined?"—":"<span style='color:var(--green)'>Ya cubierto</span>");
     const nnCol=nn&&nn>0?"var(--orange)":"var(--green)";
     rows+='<tr><td><strong>'+h.hunter+'</strong></td>'+
-      '<td style="text-align:right">'+（h.cur?fmtN(h.cur):"—"）+'</td>'+
-      '<td style="text-align:right;color:var(--red);font-weight:700">'+（h.salida?("&minus;"+fmtN(h.salida)):"—"）+'</td>'+
-      '<td style="text-align:right;color:var(--green);font-weight:700">'+（h.entrada?("+"+fmtN(h.entrada)):"—"）+'</td>'+
-      '<td style="text-align:right;font-weight:800;color:var(--blue)">'+（h.mayo?fmtN(h.mayo):"—"）+'</td>'+
-      '<td style="text-align:right;font-weight:800;color:'+dCol+'">'+（(h.salida||h.entrada)?dFmt:"—"）+'</td>'+
+      '<td style="text-align:right">'+(h.cur?fmtN(h.cur):"—")+'</td>'+
+      '<td style="text-align:right;color:var(--red);font-weight:700">'+(h.salida?("&minus;"+fmtN(h.salida)):"—")+'</td>'+
+      '<td style="text-align:right;color:var(--green);font-weight:700">'+(h.entrada?("+"+fmtN(h.entrada)):"—")+'</td>'+
+      '<td style="text-align:right;font-weight:800;color:var(--blue)">'+(h.mayo?fmtN(h.mayo):"—")+'</td>'+
+      '<td style="text-align:right;font-weight:800;color:'+dCol+'">'+((h.salida||h.entrada)?dFmt:"—")+'</td>'+
       '<td style="text-align:right;font-weight:800;color:'+nnCol+'">'+nnFmt+'</td></tr>';
   }
   rows+='<tr style="background:rgba(180,200,255,0.4)"><td><strong>TOTAL</strong></td>'+
     '<td style="text-align:right"><strong>'+fmtN(sumCur)+'</strong></td>'+
-    '<td style="text-align:right;color:var(--red);font-weight:800">'+（sumSalida?"&minus;"+fmtN(sumSalida):"—"）+'</td>'+
-    '<td style="text-align:right;color:var(--green);font-weight:800">'+（sumEntrada?"+"+fmtN(sumEntrada):"—"）+'</td>'+
+    '<td style="text-align:right;color:var(--red);font-weight:800">'+(sumSalida?"&minus;"+fmtN(sumSalida):"—")+'</td>'+
+    '<td style="text-align:right;color:var(--green);font-weight:800">'+(sumEntrada?"+"+fmtN(sumEntrada):"—")+'</td>'+
     '<td style="text-align:right;font-weight:800;color:var(--blue)">'+fmtN(sumMayo)+'</td>'+
     '<td style="text-align:right;font-weight:800;color:'+mayDeltaCol+'">'+mayDeltaFmt+'</td>'+
-    '<td style="text-align:right;font-weight:800;color:'+（(sumMayo<(d.total.objetivo||0))?"var(--orange)":"var(--green)"）+'">'+
-    （d.total.objetivo&&d.total.objetivo>sumMayo?fmtN(d.total.objetivo-sumMayo):"<span style='color:var(--green)'>Ya cubierto</span>"）+
+    '<td style="text-align:right;font-weight:800;color:'+((sumMayo<(d.total.objetivo||0))?"var(--orange)":"var(--green)")+'">'+
+    (d.total.objetivo&&d.total.objetivo>sumMayo?fmtN(d.total.objetivo-sumMayo):"<span style='color:var(--green)'>Ya cubierto</span>")+
     '</td></tr>';
   document.getElementById("s3-tbody").innerHTML=rows;
 }
@@ -385,7 +385,7 @@ function renderSalidasHunter(d){
     for(const c of hd.cuentas.sort((a,b)=>b.rv_current-a.rv_current)){
       rows+='<tr><td style="padding-left:28px;color:var(--gray);font-size:12px">&#8618;</td>'+
         '<td style="font-size:12px;color:#3a4a6b">'+c.collector+'</td>'+
-        '<td style="text-align:right;font-size:12px;color:var(--red)">'+（c.rv_current?fmtN(c.rv_current):"—"）+'</td>'+
+        '<td style="text-align:right;font-size:12px;color:var(--red)">'+(c.rv_current?fmtN(c.rv_current):"—")+'</td>'+
         '<td></td></tr>';
     }
   }
@@ -455,8 +455,8 @@ function renderSF(d){
   const SC={"Propuesta Enviada":"#009EE3","Interesado":"#7B68EE","Configuración":"#FF7733","Roll Out":"#FFB300","Cerrada Ganada":"#00A650","Cerrada Perdida":"#F23D4F"};
   let rows="";
   for(const [hname,hs] of Object.entries(d.sf_summary)){
-    const pills=Object.entries(hs.stages).map(([s,n])=>'<span style="background:'+（SC[s]||"#aaa"）+';color:#fff;border-radius:4px;padding:1px 7px;font-size:11px;margin-right:4px">'+s+' '+n+'</span>').join("")||'<span style="color:var(--gray);font-size:11px">Sin oportunidades</span>';
-    rows+='<tr><td><strong>'+hname+'</strong></td><td style="text-align:center;font-weight:700">'+hs.total+'</td><td style="text-align:center;color:#009EE3;font-weight:700">'+（hs.qr||"—"）+'</td><td style="text-align:center;color:#FF7733;font-weight:700">'+（hs.point||"—"）+'</td><td>'+pills+'</td></tr>';
+    const pills=Object.entries(hs.stages).map(([s,n])=>'<span style="background:'+(SC[s]||"#aaa")+';color:#fff;border-radius:4px;padding:1px 7px;font-size:11px;margin-right:4px">'+s+' '+n+'</span>').join("")||'<span style="color:var(--gray);font-size:11px">Sin oportunidades</span>';
+    rows+='<tr><td><strong>'+hname+'</strong></td><td style="text-align:center;font-weight:700">'+hs.total+'</td><td style="text-align:center;color:#009EE3;font-weight:700">'+(hs.qr||"—")+'</td><td style="text-align:center;color:#FF7733;font-weight:700">'+(hs.point||"—")+'</td><td>'+pills+'</td></tr>';
   }
   document.getElementById("s7-tbody").innerHTML=rows;
 }
@@ -516,13 +516,13 @@ function renderDivergencias(d,sid){
     const accCol=div.accum_dev>=0?"var(--green)":"var(--red)";
     let accumHtml="";
     if(div.n_months>1){
-      accumHtml='<div style="margin-top:3px;padding:3px 7px;background:rgba(0,0,0,.06);border-radius:3px;font-size:10.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Acum. '+div.n_months+' meses: <strong style="color:'+accCol+'">'+accSign+（div.accum_dev*100).toFixed(0)+'%</strong> &middot; FC '+fmtM(div.total_fc)+' &rarr; R.Proy '+fmtM(div.total_rv)+'</div>';
+      accumHtml='<div style="margin-top:3px;padding:3px 7px;background:rgba(0,0,0,.06);border-radius:3px;font-size:10.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Acum. '+div.n_months+' meses: <strong style="color:'+accCol+'">'+accSign+(div.accum_dev*100).toFixed(0)+'%</strong> &middot; FC '+fmtM(div.total_fc)+' &rarr; R.Proy '+fmtM(div.total_rv)+'</div>';
     }
     dcards+='<div class="dcard '+cls+'">'+
       '<div class="dhunter">'+div.hunter+' &middot; '+div.collector+' &middot; Mes más crítico: '+div.month+'</div>'+
-      '<div class="dtitle">'+（div.dev>=0?"Sorpresa positiva":"Caída crítica"）+'</div>'+
+      '<div class="dtitle">'+(div.dev>=0?"Sorpresa positiva":"Caída crítica")+'</div>'+
       '<div class="dbig" style="color:'+color+'">'+sign+(div.dev*100).toFixed(0)+'%</div>'+
-      '<div class="ddet">Forecast '+fmtM(div.fc)+' &rarr; Real Proyectado <strong>'+fmtM(div.rv)+'</strong><br>'+（div.dev>=0?"Superó ampliamente el forecast del mes.":"Rendimiento muy por debajo del forecast."）+'</div>'+
+      '<div class="ddet">Forecast '+fmtM(div.fc)+' &rarr; Real Proyectado <strong>'+fmtM(div.rv)+'</strong><br>'+(div.dev>=0?"Superó ampliamente el forecast del mes.":"Rendimiento muy por debajo del forecast.")+'</div>'+
       accumHtml+
       '</div>';
   }
