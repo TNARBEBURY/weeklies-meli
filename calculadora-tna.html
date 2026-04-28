@@ -246,18 +246,8 @@ tr:hover td { background: #fafcff; }
       </div>
       <div class="field">
         <label>Días de Liberación</label>
-        <input type="number" id="cfg-liber" value="2" min="0" max="60" step="1" oninput="recalc()">
-        <div class="hint">Días hábiles plazo de pago</div>
-      </div>
-      <div class="field">
-        <label>Días 1er Período</label>
-        <input type="number" id="cfg-d1" value="28" min="1" max="90" step="1" oninput="recalc()">
-        <div class="hint">Días hasta 1er cuota del cliente</div>
-      </div>
-      <div class="field">
-        <label>Días Resto Períodos</label>
-        <input type="number" id="cfg-d" value="30" min="1" max="60" step="1" oninput="recalc()">
-        <div class="hint">Días entre cuotas</div>
+        <input type="number" id="cfg-liber" value="2" min="0" max="29" step="1" oninput="recalc()">
+        <div class="hint">Días 1er período = 30 − liberación</div>
       </div>
     </div>
   </div>
@@ -307,12 +297,13 @@ function setInput(m, n, val) {
 
 // ─── Math ───────────────────────────────────────────────────────────────────
 function getCfg() {
+  const liber = parseFloat(document.getElementById('cfg-liber').value) || 0;
   return {
     aran : parseFloat(document.getElementById('cfg-arancel').value) / 100 || 0,
     iva  : parseFloat(document.getElementById('cfg-iva').value),
-    liber: parseFloat(document.getElementById('cfg-liber').value) || 0,
-    d1   : parseFloat(document.getElementById('cfg-d1').value) || 28,
-    d    : parseFloat(document.getElementById('cfg-d').value)  || 30,
+    liber,
+    d1   : 30 - liber,
+    d    : 30,
   };
 }
 
