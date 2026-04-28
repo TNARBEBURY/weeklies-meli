@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calculadora TNA — Fiserv</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  background: #f0f2f5;
+  color: #1a1a2e;
+  min-height: 100vh;
+}
+
+header {
+  background: linear-gradient(135deg, #009ee3, #006dba);
+  color: white;
+  padding: 22px 32px;
+}
+header h1 { font-size: 20px; font-weight: 700; letter-spacing: -0.3px; }
+header p  { font-size: 12px; opacity: 0.85; margin-top: 4px; }
+
+.container { padding: 24px 32px; max-width: 1100px; margin: 0 auto; }
+
+/* ── Cards ── */
+.card {
+  background: white;
+  border-radius: 14px;
+  padding: 20px 24px;
+  margin-bottom: 18px;
+  box-shadow: 0 1px 5px rgba(0,0,0,0.09);
+}
+.card-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #555;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 16px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #eee;
+}
+
+/* ── Config grid ── */
+.config-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 14px;
+}
+.field label {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  color: #777;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+}
+.field input, .field select {
+  width: 100%;
+  padding: 8px 11px;
+  border: 1.5px solid #dde;
+  border-radius: 8px;
+  font-size: 14px;
+  outline: none;
+  transition: border-color .15s;
+  background: #fafbff;
+}
+.field input:focus, .field select:focus { border-color: #009ee3; background: white; }
+.field .hint {
+  font-size: 10px;
+  color: #aaa;
+  margin-top: 4px;
+}
+
+/* ── Mode toggle ── */
+.mode-wrap { margin-bottom: 20px; }
+.mode-label { font-size: 11px; font-weight: 700; color: #888; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 8px; }
+.mode-toggle {
+  display: inline-flex;
+  background: #f0f2f5;
+  border-radius: 10px;
+  padding: 4px;
+  gap: 4px;
+}
+.mode-btn {
+  padding: 8px 22px;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  background: transparent;
+  color: #777;
+  transition: all .2s;
+  white-space: nowrap;
+}
+.mode-btn.active {
+  background: white;
+  color: #009ee3;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.13);
+}
+
+/* ── Table ── */
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+
+th {
+  padding: 10px 14px;
+  text-align: center;
+  font-weight: 700;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: .4px;
+  color: #666;
+  background: #f8f9fb;
+  border-bottom: 2px solid #e8e8e8;
+  white-space: nowrap;
+}
+th.input-col { background: #e8f4fe; color: #006dba; }
+th.output-col { background: #eafaf0; color: #1a7a3a; }
+
+td {
+  padding: 9px 14px;
+  border-bottom: 1px solid #f2f2f2;
+  text-align: center;
+  vertical-align: middle;
+}
+tr:hover td { background: #fafcff; }
+
+/* cuotas number input */
+.n-input {
+  width: 56px;
+  padding: 5px 7px;
+  border: 1.5px solid #dde;
+  border-radius: 7px;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 700;
+  outline: none;
+  background: #fafbff;
+}
+.n-input:focus { border-color: #009ee3; background: white; }
+
+/* user-input cells */
+.val-input {
+  width: 88px;
+  padding: 6px 10px;
+  border: 1.5px solid #009ee3;
+  border-radius: 7px;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 700;
+  outline: none;
+  background: #e8f4fe;
+  color: #006dba;
+}
+.val-input:focus { border-color: #005fa3; background: #d6ecfa; }
+
+/* output cells */
+.out-primary {
+  font-weight: 700;
+  color: #1a7a3a;
+  font-size: 14px;
+}
+.out-secondary {
+  color: #444;
+  font-weight: 600;
+}
+.out-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-weight: 700;
+  font-size: 13px;
+}
+.badge-green { background: #d4f5e2; color: #0e6b30; }
+.badge-blue  { background: #d6ecfa; color: #005fa3; }
+.badge-err   { background: #fde; color: #b00; font-size: 11px; }
+
+/* remove btn */
+.btn-rm {
+  width: 26px;
+  height: 26px;
+  border: none;
+  border-radius: 50%;
+  background: #fee;
+  color: #c00;
+  font-size: 14px;
+  cursor: pointer;
+  line-height: 1;
+  transition: background .15s;
+}
+.btn-rm:hover { background: #fcc; }
+
+/* add row btn */
+.btn-add {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 14px;
+  padding: 8px 18px;
+  background: #009ee3;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background .15s;
+}
+.btn-add:hover { background: #0081c4; }
+
+.null-val { color: #bbb; }
+
+/* col header sub-labels */
+.col-ref { font-size: 9px; color: #999; font-weight: 500; text-transform: none; letter-spacing: 0; display: block; margin-top: 1px; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Calculadora TNA — Metodología Fiserv</h1>
+  <p>Calculá la TNA a partir de la tasa de financiamiento y el coeficiente, o viceversa.</p>
+</header>
+
+<div class="container">
+
+  <!-- CONFIG -->
+  <div class="card">
+    <div class="card-title">Configuración</div>
+    <div class="config-grid">
+      <div class="field">
+        <label>Arancel (Processing)</label>
+        <input type="number" id="cfg-arancel" value="1.80" min="0" max="20" step="0.01" oninput="recalc()">
+        <div class="hint">% sobre la venta</div>
+      </div>
+      <div class="field">
+        <label>IVA Financiación</label>
+        <select id="cfg-iva" onchange="recalc()">
+          <option value="0.105">10.5% — Financiera</option>
+          <option value="0.21">21% — No Financiera</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Días de Liberación</label>
+        <input type="number" id="cfg-liber" value="2" min="0" max="60" step="1" oninput="recalc()">
+        <div class="hint">Días hábiles plazo de pago</div>
+      </div>
+      <div class="field">
+        <label>Días 1er Período</label>
+        <input type="number" id="cfg-d1" value="28" min="1" max="90" step="1" oninput="recalc()">
+        <div class="hint">Días hasta 1er cuota del cliente</div>
+      </div>
+      <div class="field">
+        <label>Días Resto Períodos</label>
+        <input type="number" id="cfg-d" value="30" min="1" max="60" step="1" oninput="recalc()">
+        <div class="hint">Días entre cuotas</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CALCULATOR -->
+  <div class="card">
+    <div class="card-title">Calculadora por Tramo</div>
+
+    <div class="mode-wrap">
+      <div class="mode-label">Modo</div>
+      <div class="mode-toggle">
+        <button class="mode-btn active" id="btn-m1" onclick="setMode(1)">TNA → Financing Fee &amp; Coeficiente</button>
+        <button class="mode-btn"        id="btn-m2" onclick="setMode(2)">Financing Fee → TNA &amp; Coeficiente</button>
+      </div>
+    </div>
+
+    <div class="table-wrap" id="table-wrap"></div>
+    <button class="btn-add" onclick="addRow()">+ Agregar tramo</button>
+  </div>
+
+</div><!-- /container -->
+
+<script>
+// ─── State ─────────────────────────────────────────────────────────────────
+let mode = 1;
+let plans = [1, 2, 3, 6, 9, 12, 18, 24];
+
+// stored inputs per mode+n so values survive mode switches
+const storedInputs = {};
+
+const defaultTNA   = { 1:0, 2:39, 3:39, 4:0, 5:0, 6:39, 7:0, 8:0, 9:39, 10:0, 11:0, 12:39, 18:25, 24:25 };
+const defaultTasaD = { 1:0, 2:5,  3:6,  4:3, 5:4, 6:10, 7:7, 8:9, 9:14, 10:10,11:12, 12:18, 18:22, 24:27 };
+
+function inputKey(m, n) { return `${m}_${n}`; }
+
+function getInput(m, n) {
+  const k = inputKey(m, n);
+  if (storedInputs[k] == null) {
+    storedInputs[k] = m === 1 ? (defaultTNA[n] ?? 39) : (defaultTasaD[n] ?? 5);
+  }
+  return storedInputs[k];
+}
+
+function setInput(m, n, val) {
+  storedInputs[inputKey(m, n)] = val;
+}
+
+// ─── Math ───────────────────────────────────────────────────────────────────
+function getCfg() {
+  return {
+    aran : parseFloat(document.getElementById('cfg-arancel').value) / 100 || 0,
+    iva  : parseFloat(document.getElementById('cfg-iva').value),
+    liber: parseFloat(document.getElementById('cfg-liber').value) || 0,
+    d1   : parseFloat(document.getElementById('cfg-d1').value) || 28,
+    d    : parseFloat(document.getElementById('cfg-d').value)  || 30,
+  };
+}
+
+function calcVA(n, tna, aran, d1, d) {
+  const vsa   = 1 - aran;
+  const cuota = vsa / n;
+  const r1    = tna / 360 * d1;
+  const r     = tna / 360 * d;
+  let va = 0;
+  for (let k = 1; k <= n; k++) {
+    va += cuota / ((1 + r1) * Math.pow(1 + r, k - 1));
+  }
+  return va;
+}
+
+// Forward: TNA → Tasa Directa (col G), Coef c/IVA (col H)
+function fromTNA(n, tna, cfg) {
+  const { aran, iva, d1, d } = cfg;
+  if (n === 1) return { ok:true, tasaDir:0, coefCIVA:1 };
+  const vsa  = 1 - aran;
+  const va   = calcVA(n, tna, aran, d1, d);
+  const coef = vsa / va;
+  const td   = vsa * (1 - 1 / coef);                   // Tasa Directa (col G)
+  if (td <= 0 || td >= 1) return { ok:false };
+  const denom = 1 - td * (1 + iva);
+  if (denom <= 0) return { ok:false };
+  const coefCIVA = 1 / denom;                           // Coef c/IVA (col H)
+  return { ok:true, tasaDir:td, coefCIVA };
+}
+
+// Inverse: Tasa Directa → TNA, Coef c/IVA (col H)
+function fromTasaDir(n, td, cfg) {
+  const { aran, iva, d1, d } = cfg;
+  if (n === 1 || td <= 0) return { ok:true, tna:0, coefCIVA:1 };
+  const vsa   = 1 - aran;
+  const ratio = td / vsa;
+  if (ratio >= 1) return { ok:false, msg:'Tasa demasiado alta' };
+  const denom = 1 - td * (1 + iva);
+  if (denom <= 0) return { ok:false, msg:'IVA inválido' };
+  const coefCIVA = 1 / denom;
+  const coef     = 1 / (1 - ratio);
+  const targetVA = vsa / coef;
+
+  // bisection for TNA
+  let lo = 0, hi = 20;
+  for (let i = 0; i < 120; i++) {
+    const mid = (lo + hi) / 2;
+    calcVA(n, mid, aran, d1, d) > targetVA ? (lo = mid) : (hi = mid);
+  }
+  const tna = (lo + hi) / 2;
+  return { ok:true, tna, coefCIVA };
+}
+
+// ─── Formatting ─────────────────────────────────────────────────────────────
+function pct(v, dec=2)  { return (v * 100).toFixed(dec) + '%'; }
+function num(v, dec=4)  { return v.toFixed(dec); }
+
+// ─── Render ─────────────────────────────────────────────────────────────────
+function setMode(m) {
+  mode = m;
+  document.getElementById('btn-m1').classList.toggle('active', m===1);
+  document.getElementById('btn-m2').classList.toggle('active', m===2);
+  renderTable();
+}
+
+function addRow() {
+  const last = plans.length ? plans[plans.length-1] : 0;
+  plans.push(last + 1);
+  renderTable();
+}
+
+function removeRow(idx) {
+  plans.splice(idx, 1);
+  renderTable();
+}
+
+function onNChange(idx, val) {
+  plans[idx] = parseInt(val) || 1;
+  recalc();
+}
+
+function onValChange(idx, val) {
+  setInput(mode, plans[idx], parseFloat(val) || 0);
+  recalcRow(idx);
+}
+
+function renderTable() {
+  const wrap = document.getElementById('table-wrap');
+
+  const m1Heads = `
+    <th>Cuotas</th>
+    <th class="input-col">TNA<span class="col-ref">ingresá vos</span></th>
+    <th class="output-col">Tasa Directa<span class="col-ref">col G</span></th>
+    <th class="output-col">Coef c/IVA<span class="col-ref">col H</span></th>
+    <th></th>`;
+
+  const m2Heads = `
+    <th>Cuotas</th>
+    <th class="input-col">Tasa Directa<span class="col-ref">col G — ingresá vos</span></th>
+    <th class="output-col">TNA</th>
+    <th class="output-col">Coef c/IVA<span class="col-ref">col H</span></th>
+    <th></th>`;
+
+  const rowsHTML = plans.map((n, idx) => {
+    const inputVal = getInput(mode, n);
+    if (mode === 1) {
+      return `
+        <tr id="row-${idx}">
+          <td><input class="n-input" type="number" value="${n}" min="1" max="72" onchange="onNChange(${idx},this.value)"></td>
+          <td><input class="val-input" type="number" value="${inputVal}" min="0" max="1000" step="0.5" oninput="onValChange(${idx},this.value)"> <span style="font-size:11px;color:#888">%</span></td>
+          <td id="td-${idx}" class="out-secondary">—</td>
+          <td id="cd-${idx}" class="out-secondary">—</td>
+          <td><button class="btn-rm" onclick="removeRow(${idx})">×</button></td>
+        </tr>`;
+    } else {
+      return `
+        <tr id="row-${idx}">
+          <td><input class="n-input" type="number" value="${n}" min="1" max="72" onchange="onNChange(${idx},this.value)"></td>
+          <td><input class="val-input" type="number" value="${inputVal}" min="0" max="100" step="0.1" oninput="onValChange(${idx},this.value)"> <span style="font-size:11px;color:#888">%</span></td>
+          <td id="td-${idx}" class="out-primary">—</td>
+          <td id="cd-${idx}" class="out-secondary">—</td>
+          <td><button class="btn-rm" onclick="removeRow(${idx})">×</button></td>
+        </tr>`;
+    }
+  }).join('');
+
+  wrap.innerHTML = `
+    <table>
+      <thead><tr>${mode===1 ? m1Heads : m2Heads}</tr></thead>
+      <tbody>${rowsHTML}</tbody>
+    </table>`;
+
+  recalc();
+}
+
+function recalcRow(idx) {
+  const cfg = getCfg();
+  const n   = plans[idx];
+  const tdEl = document.getElementById(`td-${idx}`);
+  const cdEl = document.getElementById(`cd-${idx}`);
+  if (!tdEl || !cdEl) return;
+
+  if (mode === 1) {
+    const tna = getInput(1, n) / 100;
+    const res = fromTNA(n, tna, cfg);
+    if (res.ok) {
+      tdEl.innerHTML = `<span class="out-badge badge-green">${pct(res.tasaDir)}</span>`;
+      cdEl.innerHTML = `<span class="out-badge badge-blue">${num(res.coefCIVA)}</span>`;
+    } else {
+      tdEl.innerHTML = `<span class="out-badge badge-err">—</span>`;
+      cdEl.innerHTML = `<span class="out-badge badge-err">—</span>`;
+    }
+  } else {
+    const td  = getInput(2, n) / 100;
+    const res = fromTasaDir(n, td, cfg);
+    if (res.ok) {
+      tdEl.innerHTML = `<span class="out-badge badge-green">${pct(res.tna)}</span>`;
+      cdEl.innerHTML = `<span class="out-badge badge-blue">${num(res.coefCIVA)}</span>`;
+    } else {
+      const msg = res.msg || '—';
+      tdEl.innerHTML = `<span class="out-badge badge-err">${msg}</span>`;
+      cdEl.innerHTML = `<span class="out-badge badge-err">—</span>`;
+    }
+  }
+}
+
+function recalc() {
+  plans.forEach((_, idx) => recalcRow(idx));
+}
+
+// ─── Init ───────────────────────────────────────────────────────────────────
+renderTable();
+</script>
+</body>
+</html>
