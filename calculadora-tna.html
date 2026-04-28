@@ -240,8 +240,8 @@ tr:hover td { background: #fafcff; }
       <div class="field">
         <label>IVA Financiación</label>
         <select id="cfg-iva" onchange="recalc()">
+          <option value="0.21" selected>21% — No Financiera</option>
           <option value="0.105">10.5% — Financiera</option>
-          <option value="0.21">21% — No Financiera</option>
         </select>
       </div>
       <div class="field">
@@ -328,32 +328,32 @@ function calcVA(n, tna, aran, d1, d) {
   return va;
 }
 
-// Forward: TNA → Tasa Directa (col G), Coef c/IVA (col H)
+// Forward: TNA → Coef (col F), Tasa Directa (col G), Coef c/IVA (col H)
 function fromTNA(n, tna, cfg) {
   const { aran, iva, d1, d } = cfg;
-  if (n === 1) return { ok:true, tasaDir:0, coefCIVA:1 };
+  if (n === 1) return { ok:true, coef:1, tasaDir:0, coefCIVA:1 };
   const vsa  = 1 - aran;
   const va   = calcVA(n, tna, aran, d1, d);
-  const coef = vsa / va;
+  const coef = vsa / va;                                // Coeficiente (col F)
   const td   = vsa * (1 - 1 / coef);                   // Tasa Directa (col G)
   if (td <= 0 || td >= 1) return { ok:false };
   const denom = 1 - td * (1 + iva);
   if (denom <= 0) return { ok:false };
   const coefCIVA = 1 / denom;                           // Coef c/IVA (col H)
-  return { ok:true, tasaDir:td, coefCIVA };
+  return { ok:true, coef, tasaDir:td, coefCIVA };
 }
 
-// Inverse: Tasa Directa → TNA, Coef c/IVA (col H)
+// Inverse: Tasa Directa → TNA, Coef (col F), Coef c/IVA (col H)
 function fromTasaDir(n, td, cfg) {
   const { aran, iva, d1, d } = cfg;
-  if (n === 1 || td <= 0) return { ok:true, tna:0, coefCIVA:1 };
+  if (n === 1 || td <= 0) return { ok:true, tna:0, coef:1, coefCIVA:1 };
   const vsa   = 1 - aran;
   const ratio = td / vsa;
   if (ratio >= 1) return { ok:false, msg:'Tasa demasiado alta' };
   const denom = 1 - td * (1 + iva);
   if (denom <= 0) return { ok:false, msg:'IVA inválido' };
   const coefCIVA = 1 / denom;
-  const coef     = 1 / (1 - ratio);
+  const coef     = 1 / (1 - ratio);                    // Coeficiente (col F)
   const targetVA = vsa / coef;
 
   // bisection for TNA
@@ -363,7 +363,7 @@ function fromTasaDir(n, td, cfg) {
     calcVA(n, mid, aran, d1, d) > targetVA ? (lo = mid) : (hi = mid);
   }
   const tna = (lo + hi) / 2;
-  return { ok:true, tna, coefCIVA };
+  return { ok:true, tna, coef, coefCIVA };
 }
 
 // ─── Formatting ─────────────────────────────────────────────────────────────
@@ -406,6 +406,7 @@ function renderTable() {
     <th>Cuotas</th>
     <th class="input-col">TNA<span class="col-ref">ingresá vos</span></th>
     <th class="output-col">Tasa Directa<span class="col-ref">col G</span></th>
+    <th class="output-col">Coeficiente<span class="col-ref">col F — sin IVA</span></th>
     <th class="output-col">Coef c/IVA<span class="col-ref">col H</span></th>
     <th></th>`;
 
@@ -413,6 +414,7 @@ function renderTable() {
     <th>Cuotas</th>
     <th class="input-col">Tasa Directa<span class="col-ref">col G — ingresá vos</span></th>
     <th class="output-col">TNA</th>
+    <th class="output-col">Coeficiente<span class="col-ref">col F — sin IVA</span></th>
     <th class="output-col">Coef c/IVA<span class="col-ref">col H</span></th>
     <th></th>`;
 
@@ -424,6 +426,7 @@ function renderTable() {
           <td><input class="n-input" type="number" value="${n}" min="1" max="72" onchange="onNChange(${idx},this.value)"></td>
           <td><input class="val-input" type="number" value="${inputVal}" min="0" max="1000" step="0.5" oninput="onValChange(${idx},this.value)"> <span style="font-size:11px;color:#888">%</span></td>
           <td id="td-${idx}" class="out-secondary">—</td>
+          <td id="cf-${idx}" class="out-secondary">—</td>
           <td id="cd-${idx}" class="out-secondary">—</td>
           <td><button class="btn-rm" onclick="removeRow(${idx})">×</button></td>
         </tr>`;
@@ -433,6 +436,7 @@ function renderTable() {
           <td><input class="n-input" type="number" value="${n}" min="1" max="72" onchange="onNChange(${idx},this.value)"></td>
           <td><input class="val-input" type="number" value="${inputVal}" min="0" max="100" step="0.1" oninput="onValChange(${idx},this.value)"> <span style="font-size:11px;color:#888">%</span></td>
           <td id="td-${idx}" class="out-primary">—</td>
+          <td id="cf-${idx}" class="out-secondary">—</td>
           <td id="cd-${idx}" class="out-secondary">—</td>
           <td><button class="btn-rm" onclick="removeRow(${idx})">×</button></td>
         </tr>`;
@@ -449,32 +453,33 @@ function renderTable() {
 }
 
 function recalcRow(idx) {
-  const cfg = getCfg();
-  const n   = plans[idx];
+  const cfg  = getCfg();
+  const n    = plans[idx];
   const tdEl = document.getElementById(`td-${idx}`);
+  const cfEl = document.getElementById(`cf-${idx}`);
   const cdEl = document.getElementById(`cd-${idx}`);
-  if (!tdEl || !cdEl) return;
+  if (!tdEl || !cfEl || !cdEl) return;
 
   if (mode === 1) {
     const tna = getInput(1, n) / 100;
     const res = fromTNA(n, tna, cfg);
     if (res.ok) {
       tdEl.innerHTML = `<span class="out-badge badge-green">${pct(res.tasaDir)}</span>`;
+      cfEl.innerHTML = `<span class="out-badge badge-blue">${num(res.coef)}</span>`;
       cdEl.innerHTML = `<span class="out-badge badge-blue">${num(res.coefCIVA)}</span>`;
     } else {
-      tdEl.innerHTML = `<span class="out-badge badge-err">—</span>`;
-      cdEl.innerHTML = `<span class="out-badge badge-err">—</span>`;
+      [tdEl, cfEl, cdEl].forEach(el => el.innerHTML = `<span class="out-badge badge-err">—</span>`);
     }
   } else {
     const td  = getInput(2, n) / 100;
     const res = fromTasaDir(n, td, cfg);
     if (res.ok) {
       tdEl.innerHTML = `<span class="out-badge badge-green">${pct(res.tna)}</span>`;
+      cfEl.innerHTML = `<span class="out-badge badge-blue">${num(res.coef)}</span>`;
       cdEl.innerHTML = `<span class="out-badge badge-blue">${num(res.coefCIVA)}</span>`;
     } else {
       const msg = res.msg || '—';
-      tdEl.innerHTML = `<span class="out-badge badge-err">${msg}</span>`;
-      cdEl.innerHTML = `<span class="out-badge badge-err">—</span>`;
+      [tdEl, cfEl, cdEl].forEach(el => el.innerHTML = `<span class="out-badge badge-err">${msg}</span>`);
     }
   }
 }
