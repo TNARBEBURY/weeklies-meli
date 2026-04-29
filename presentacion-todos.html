@@ -548,32 +548,36 @@ function renderPipelineETA(d,sid){
     'Cerrada Ganada':'#00A650','Roll Out':'#FFB300','Configuración':'#FF7733',
     'Propuesta Enviada':'#009EE3','Interesado':'#7B68EE','Follow Up':'#8492A6',
   };
-  const cobColor={'Ambos productos':'#00A650','Point':'#FF7733','QR':'#FF7733','Sin opp SF':'#8492A6'};
+  function mkCob(cob){
+    const m={'Ambos productos':['#00A650','✓'],'Point':['#FF7733','⚠'],'QR':['#FF7733','⚠'],'Sin opp SF':['#8492A6','✗']};
+    const [bg,ic]=m[cob]||['#ccc',''];
+    return '<span style="background:'+bg+';color:#fff;padding:3px 10px;border-radius:10px;font-size:11px;font-weight:700;white-space:nowrap">'+ic+' '+cob+'</span>';
+  }
   let tbody="";
   for(const r of rows){
-    const sc=statusColor[r.status.split(' / ')[0].replace('Point: ','').replace('QR: ','')]||'#8492A6';
+    const sc=statusColor[r.status.split(' / ')[0].replace('Point: ','').replace('QR: ','').trim()]||'#8492A6';
     const etaBadge='<span style="background:#e8f4fe;color:#006dba;padding:2px 8px;border-radius:10px;font-weight:700;font-size:11px">'+r.eta+'</span>';
-    const cob=r.cobertura||'—';
-    const cc=cobColor[cob]||(cob.startsWith('Falta')?'#F23D4F':'#8492A6');
-    const cobBadge='<span style="background:'+cc+'22;color:'+cc+';padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700">'+cob+'</span>';
     tbody+='<tr>'+
-      '<td style="font-weight:700">'+r.hunter+'</td>'+
+      '<td style="font-weight:700;text-align:center">'+r.hunter+'</td>'+
       '<td>'+r.collector+'</td>'+
       '<td style="text-align:center;font-size:11px;color:#555">'+r.producto+'</td>'+
       '<td style="text-align:center">'+r.tpv+'</td>'+
       '<td style="text-align:center">'+etaBadge+'</td>'+
-      '<td style="white-space:nowrap"><span style="background:'+sc+'22;color:'+sc+';padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600">'+r.status+'</span></td>'+
-      '<td style="text-align:right;font-weight:600;color:var(--blue)">'+r.fc_eta+'</td>'+
-      '<td style="text-align:right;color:var(--gray)">'+r.fc_next+'</td>'+
-      '<td style="text-align:center">'+cobBadge+'</td>'+
+      '<td style="white-space:nowrap;text-align:center"><span style="background:'+sc+'22;color:'+sc+';padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600">'+r.status+'</span></td>'+
+      '<td style="text-align:center;font-weight:600;color:var(--blue)">'+r.fc_eta+'</td>'+
+      '<td style="text-align:center;color:var(--gray)">'+r.fc_next+'</td>'+
+      '<td style="text-align:center">'+mkCob(r.cobertura||'—')+'</td>'+
     '</tr>';
   }
   slideEl.innerHTML=
     '<div class="sheader"><div class="tag">Pipeline · ETA Próximo</div><div class="h1">Cuentas con ETA '+mn+' · '+mnNext+'</div></div>'+
     '<div class="card" style="flex:1;overflow:auto">'+
     '<table class="tbl"><thead><tr>'+
-    '<th>Hunter</th><th>Cuenta</th><th style="text-align:center">Producto Sheet</th><th style="text-align:center">TPV Pot.</th><th style="text-align:center">ETA</th><th>Status SF</th>'+
-    '<th style="text-align:right">FC '+mn+'</th><th style="text-align:right">FC '+mnNext+'</th><th style="text-align:center">Cobertura SF</th>'+
+    '<th style="text-align:center">Hunter</th><th style="text-align:center">Cuenta</th>'+
+    '<th style="text-align:center">Producto Sheet</th><th style="text-align:center">TPV Pot.</th>'+
+    '<th style="text-align:center">ETA</th><th style="text-align:center">Status SF</th>'+
+    '<th style="text-align:center">FC '+mn+'</th><th style="text-align:center">FC '+mnNext+'</th>'+
+    '<th style="text-align:center">Cobertura SF</th>'+
     '</tr></thead><tbody>'+tbody+'</tbody></table></div>';
 }
 
