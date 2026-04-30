@@ -626,12 +626,21 @@ function renderNextSteps(d,sid){
     '<div class="nsgrid">'+ns+'</div>';
 }
 
+function filterSFHunter(tbodyId,stage){
+  const tbody=document.getElementById(tbodyId);
+  if(!tbody) return;
+  for(const tr of tbody.querySelectorAll("tr[data-stage]")){
+    tr.style.display=(stage==="Todas"||tr.dataset.stage===stage)?"":"none";
+  }
+}
+
 function renderSFHunters(d,startSid){
   // 2 hunters per slide
   const hunterNames=Object.keys(d.sf_summary);
   const pairs=[];
   for(let i=0;i<hunterNames.length;i+=2) pairs.push(hunterNames.slice(i,i+2));
   let sid=startSid;
+  let hIdx=0;
   for(const pair of pairs){
     const slideEl=document.getElementById("s"+sid);
     if(!slideEl){sid++;continue;}
@@ -639,23 +648,30 @@ function renderSFHunters(d,startSid){
     for(const hname of pair){
       const hs=d.sf_summary[hname];
       if(!hs){continue;}
+      const tbodyId="sfh-"+hIdx++;
+      const stages=[...new Set(hs.opps.map(o=>o.stage).filter(Boolean))];
+      let opts='<option value="Todas">Todas las etapas</option>';
+      for(const st of stages) opts+='<option value="'+st+'">'+st+'</option>';
       let rows="";
       for(const o of hs.opps){
         const dc=o.days===null||o.days===undefined?"#999":(o.days>60?"var(--red)":(o.days>30?"#FF7733":"var(--green)"));
         const ds=o.days===null||o.days===undefined?"—":o.days+"d";
         const nb=o.is_new?'<span style="background:#00A650;color:#fff;border-radius:3px;padding:1px 5px;font-size:9px;font-weight:800;vertical-align:middle;margin-left:5px">&#10022; '+d.month_name+'</span>':''
-        rows+='<tr><td><strong>'+o.account+'</strong>'+nb+'</td><td>'+o.product+'</td><td><span style="color:'+o.color+';font-weight:700">'+o.stage+'</span></td><td style="text-align:center;color:'+dc+';font-weight:700">'+ds+'</td></tr>';
+        rows+='<tr data-stage="'+o.stage+'"><td><strong>'+o.account+'</strong>'+nb+'</td><td>'+o.product+'</td><td><span style="color:'+o.color+';font-weight:700">'+o.stage+'</span></td><td style="text-align:center;color:'+dc+';font-weight:700">'+ds+'</td></tr>';
       }
       if(!rows) rows='<tr><td colspan="4" style="color:var(--gray);padding:12px">Sin oportunidades</td></tr>';
       cols+='<div style="flex:1;display:flex;flex-direction:column;gap:8px;min-width:0">'+
+        '<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">'+
         '<div style="font-size:15px;font-weight:900;color:var(--dark)">'+hname+'</div>'+
+        '<select onchange="filterSFHunter(\''+tbodyId+'\',this.value)" style="font-size:11px;padding:3px 8px;border-radius:8px;border:1.5px solid #dde;background:#fafbff;color:var(--dark);cursor:pointer">'+opts+'</select>'+
+        '</div>'+
         '<div style="display:flex;gap:12px;font-size:12px;flex-wrap:wrap">'+
         '<span><strong>'+hs.total+'</strong> oportunidades</span>'+
         '<span style="color:#009EE3"><strong>'+hs.qr+'</strong> QR</span>'+
         '<span style="color:#FF7733"><strong>'+hs.point+'</strong> Point</span>'+
         '<span style="color:var(--green);font-weight:700"><strong>'+hs.new_this+'</strong> creadas en '+d.month_name+'</span>'+
         '</div>'+
-        '<div style="flex:1;overflow:auto"><table class="tbl" style="font-size:11.5px"><thead><tr><th>Cuenta</th><th>Producto</th><th>Etapa</th><th style="text-align:center">Días</th></tr></thead><tbody>'+rows+'</tbody></table></div>'+
+        '<div style="flex:1;overflow:auto"><table class="tbl" style="font-size:11.5px"><thead><tr><th>Cuenta</th><th>Producto</th><th>Etapa</th><th style="text-align:center">Días</th></tr></thead><tbody id="'+tbodyId+'">'+rows+'</tbody></table></div>'+
         '</div>';
     }
     slideEl.innerHTML=
