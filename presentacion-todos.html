@@ -618,8 +618,9 @@ function renderPerformance(d,sid){
     let tot={tpv_new:0,tpv_cur:0,tpv_leg:0,tpv_total:0,plan_tpv:0,vc_total:0,plan_vc:0};
     for(const h of hunters){
       const tt=(h.tpv_total||{})[key]||0;
-      const vct=(h.vc_total||{})[key]||0;
-      if(tt===0 && vct===0) continue;  // skip hunters with no data
+      const tn_ytd=(h.tpv_new||{}).ytd||0;
+      if(tt===0) continue;           // skip hunters with no total TPV in period
+      if(tn_ytd===0) continue;       // skip hunters with no New YTD (solo cuentas heredadas)
       const tn=(h.tpv_new||{})[key]||0;
       const tc=(h.tpv_cur||{})[key]||0;
       const tl=(h.tpv_leg||{})[key]||0;
