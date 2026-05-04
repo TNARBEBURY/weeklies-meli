@@ -626,6 +626,7 @@ function renderPerformance(d,sid){
       const tl=(h.tpv_leg||{})[key]||0;
       const pt=(h.plan_tpv||{})[key]||0;
       const vt=(h.vs_tpv||{})[key];
+      const vct=(h.vc_total||{})[key]||0;
       const pvc=(h.plan_vc||{})[key]||0;
       const vvc=(h.vs_vc||{})[key];
       tot.tpv_new+=tn;tot.tpv_cur+=tc;tot.tpv_leg+=tl;tot.tpv_total+=tt;tot.plan_tpv+=pt;tot.vc_total+=vct;tot.plan_vc+=pvc;
