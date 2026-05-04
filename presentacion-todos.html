@@ -461,7 +461,7 @@ function renderChart(d){
       {type:"bar",label:"Lineal (base)",stack:"t",data:lbase,backgroundColor:"#009EE3",borderRadius:4,order:1},
       {type:"bar",label:"New",stack:"t",data:ndata,backgroundColor:"#00A650",borderRadius:4,order:1}
     ]},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:"top",labels:{font:{size:12},padding:14}},tooltip:{callbacks:{label:c=>c.dataset.label+": $"+c.parsed.y.toLocaleString("en-US")}}},scales:{x:{stacked:true,grid:{display:false},ticks:{font:{size:12}}},y:{stacked:true,grid:{color:"#EEF3FF"},suggestedMax:Math.max(...(odata.filter(v=>v)))*1.2||1,ticks:{font:{size:11},callback:v=>"$"+(v/1000).toFixed(0)+"K"}}}}
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:"top",labels:{font:{size:12},padding:14}},tooltip:{callbacks:{label:c=>c.dataset.label+": $"+Math.round(c.parsed.y).toLocaleString("en-US")}}},scales:{x:{stacked:true,grid:{display:false},ticks:{font:{size:12}}},y:{stacked:true,grid:{color:"#EEF3FF"},suggestedMax:Math.max(...(odata.filter(v=>v)))*1.2||1,ticks:{font:{size:11},callback:v=>"$"+(v/1000).toFixed(0)+"K"}}}}
   });
 }
 
