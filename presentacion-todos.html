@@ -619,6 +619,8 @@ function renderPerformance(d,sid){
     let tbody='';
     let tot={tpv_new:0,tpv_cur:0,tpv_leg:0,tpv_total:0,plan_gest_tpv:0,plan_tpv:0,vc_new:0,vc_cur:0,vc_total:0,plan_gest_vc:0,plan_vc:0};
     for(const h of hunters){
+      // ytd_global: solo hunters actuales (is_current)
+      if(key==='ytd_global' && !h.is_current) continue;
       // Monthly view:
       // - current hunter: show all months (full history, cross-supervisor)
       // - past hunter (transferred out): only show months under this supervisor
