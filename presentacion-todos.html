@@ -615,7 +615,7 @@ function renderPerformance(d,sid){
   function buildTable(key){
     // key = 'ytd' or '202601' etc.
     let tbody='';
-    let tot={tpv_new:0,tpv_cur:0,tpv_leg:0,tpv_total:0,plan_gest_tpv:0,plan_tpv:0,vc_total:0,plan_gest_vc:0,plan_vc:0};
+    let tot={tpv_new:0,tpv_cur:0,tpv_leg:0,tpv_total:0,plan_gest_tpv:0,plan_tpv:0,vc_new:0,vc_cur:0,vc_total:0,plan_gest_vc:0,plan_vc:0};
     for(const h of hunters){
       const tn=(h.tpv_new||{})[key]||0;
       const tc=(h.tpv_cur||{})[key]||0;
@@ -623,15 +623,18 @@ function renderPerformance(d,sid){
       const tt=(h.tpv_total||{})[key]||0;
       const pg_tpv=(h.plan_gest_tpv||{})[key]||0;
       const pa_tpv=(h.plan_tpv||{})[key]||0;
-      const vg_tpv=(h.vs_gest_tpv||{})[key];
-      const va_tpv=(h.vs_tpv||{})[key];
+      const vg_tpv=pg_tpv?(tn+tc)/pg_tpv-1:null;   // Gestión = New+Current vs plan
+      const va_tpv=pa_tpv?tt/pa_tpv-1:null;          // Anual = Total vs plan
+      const vn=(h.vc_new||{})[key]||0;
+      const vc_c=(h.vc_cur||{})[key]||0;
       const vct=(h.vc_total||{})[key]||0;
       const pg_vc=(h.plan_gest_vc||{})[key]||0;
       const pa_vc=(h.plan_vc||{})[key]||0;
-      const vg_vc=(h.vs_gest_vc||{})[key];
-      const va_vc=(h.vs_vc||{})[key];
+      const vg_vc=pg_vc?(vn+vc_c)/pg_vc-1:null;     // Gestión VC = New+Current vs plan
+      const va_vc=pa_vc?vct/pa_vc-1:null;             // Anual VC = Total vs plan
       tot.tpv_new+=tn;tot.tpv_cur+=tc;tot.tpv_leg+=tl;tot.tpv_total+=tt;
-      tot.plan_gest_tpv+=pg_tpv;tot.plan_tpv+=pa_tpv;tot.vc_total+=vct;
+      tot.plan_gest_tpv+=pg_tpv;tot.plan_tpv+=pa_tpv;
+      tot.vc_new+=vn;tot.vc_cur+=vc_c;tot.vc_total+=vct;
       tot.plan_gest_vc+=pg_vc;tot.plan_vc+=pa_vc;
       tbody+='<tr>'+
         '<td style="font-weight:700">'+h.hunter+'</td>'+
@@ -650,9 +653,9 @@ function renderPerformance(d,sid){
         '<td style="text-align:center;font-weight:700;font-size:11px;color:'+pctColor(va_vc)+'">'+fmtPct(va_vc)+'</td>'+
       '</tr>';
     }
-    const tpct_g=tot.plan_gest_tpv?tot.tpv_total/tot.plan_gest_tpv-1:null;
+    const tpct_g=tot.plan_gest_tpv?(tot.tpv_new+tot.tpv_cur)/tot.plan_gest_tpv-1:null;
     const tpct_a=tot.plan_tpv?tot.tpv_total/tot.plan_tpv-1:null;
-    const vpct_g=tot.plan_gest_vc?tot.vc_total/tot.plan_gest_vc-1:null;
+    const vpct_g=tot.plan_gest_vc?(tot.vc_new+tot.vc_cur)/tot.plan_gest_vc-1:null;
     const vpct_a=tot.plan_vc?tot.vc_total/tot.plan_vc-1:null;
     tbody+='<tr style="background:rgba(0,0,0,0.07);border-top:2px solid rgba(0,0,0,0.15)">'+
       '<td style="font-weight:900">TOTAL</td>'+
