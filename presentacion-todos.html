@@ -619,9 +619,9 @@ function renderPerformance(d,sid){
     let tbody='';
     let tot={tpv_new:0,tpv_cur:0,tpv_leg:0,tpv_total:0,plan_gest_tpv:0,plan_tpv:0,vc_new:0,vc_cur:0,vc_total:0,plan_gest_vc:0,plan_vc:0};
     for(const h of hunters){
-      // Ocultar hunters sin ninguna activación New en el año (ej: recién ingresados con cuentas heredadas)
-      const tnGlobal=(h.tpv_new||{}).ytd_global||0;
-      if(tnGlobal===0) continue;
+      // Ocultar hunters sin ningún TPV en el año (recién ingresados sin datos)
+      const ttGlobal=(h.tpv_total||{}).ytd_global||0;
+      if(ttGlobal===0) continue;
       // ytd_global: solo hunters actuales (is_current)
       if(key==='ytd_global' && !h.is_current) continue;
       // Monthly view:
