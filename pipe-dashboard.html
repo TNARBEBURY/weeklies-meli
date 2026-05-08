@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Pipeline Dashboard 2026</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0f1117;--card:#181d2d;--card2:#1e2540;--border:#252d45;
+  --text:#e2e8f0;--muted:#8892a4;
+  --blue:#3b82f6;--green:#10b981;--amber:#f59e0b;
+  --red:#ef4444;--purple:#8b5cf6;--cyan:#06b6d4;
+}
+body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:14px;min-height:100vh}
+
+/* Header */
+.hdr{background:linear-gradient(135deg,#0b0f1a 0%,#141c38 50%,#0b0f1a 100%);border-bottom:1px solid var(--border);padding:18px 32px;display:flex;justify-content:space-between;align-items:center}
+.hdr h1{font-size:21px;font-weight:700;color:#fff;letter-spacing:.3px}
+.hdr .sub{font-size:11px;color:var(--muted);margin-top:3px;text-transform:uppercase;letter-spacing:1px}
+.hdr-right{text-align:right;font-size:12px;color:var(--muted);line-height:1.6}
+.tag{display:inline-block;background:var(--blue);color:#fff;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;margin-bottom:5px}
+
+/* Layout */
+.wrap{padding:24px 32px;max-width:1440px;margin:0 auto}
+
+/* KPI Cards */
+.kpi-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-bottom:24px}
+.kpi{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:18px 20px;position:relative;overflow:hidden}
+.kpi::after{content:'';position:absolute;top:0;left:0;right:0;height:3px;border-radius:12px 12px 0 0}
+.kpi.k-plan::after{background:var(--blue)}
+.kpi.k-cur::after{background:var(--cyan)}
+.kpi.k-new::after{background:var(--purple)}
+.kpi.k-total::after{background:var(--green)}
+.kpi.k-gap-pos::after{background:var(--green)}
+.kpi.k-gap-neg::after{background:var(--red)}
+.kpi-lbl{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:8px}
+.kpi-val{font-size:28px;font-weight:700;color:#fff;line-height:1}
+.kpi.k-total .kpi-val{color:var(--green)}
+.kpi.k-gap-pos .kpi-val{color:var(--green)}
+.kpi.k-gap-neg .kpi-val{color:var(--red)}
+.kpi-sub{font-size:12px;color:var(--muted);margin-top:5px}
+
+/* Section */
+.sec{background:var(--card);border:1px solid var(--border);border-radius:12px;margin-bottom:22px;overflow:hidden}
+.sec-hdr{padding:14px 22px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+.sec-title{font-size:15px;font-weight:600;color:#fff}
+.sec-meta{font-size:12px;color:var(--muted)}
+.sec-body{padding:22px}
+.sec-body.no-pad{padding:0}
+
+/* Chart */
+.chart-box{position:relative}
+
+/* Tables */
+table{width:100%;border-collapse:collapse}
+th{font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);padding:9px 14px;border-bottom:1px solid var(--border);font-weight:600;white-space:nowrap}
+th.r{text-align:right}
+td{padding:10px 14px;border-bottom:1px solid rgba(37,45,69,.6);font-size:13px;vertical-align:middle}
+td.r{text-align:right;font-variant-numeric:tabular-nums}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(255,255,255,.02)}
+tr.cur-row td{background:rgba(59,130,246,.07)}
+tr.total-row td{border-top:2px solid var(--border);font-weight:700}
+
+/* Badges */
+.badge{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;white-space:nowrap}
+.bg{background:rgba(16,185,129,.15);color:#10b981}
+.br{background:rgba(239,68,68,.15);color:#ef4444}
+.ba{background:rgba(245,158,11,.15);color:#f59e0b}
+.bb{background:rgba(59,130,246,.15);color:#3b82f6}
+.bm{background:rgba(136,146,164,.15);color:#8892a4}
+.bp{background:rgba(139,92,246,.15);color:#a78bfa}
+
+/* Hunter */
+.hunter-sel{background:var(--card2);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:8px 36px 8px 14px;font-size:14px;cursor:pointer;min-width:240px;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%238892a4' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14L2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center}
+.hunter-sel:focus{outline:none;border-color:var(--blue)}
+
+.h-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:12px;margin-bottom:20px}
+.h-card{background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:14px;cursor:pointer;transition:border-color .15s,background .15s}
+.h-card:hover{border-color:var(--blue);background:rgba(59,130,246,.07)}
+.h-name{font-size:13px;font-weight:600;color:#fff;margin-bottom:5px}
+.h-pipe{font-size:20px;font-weight:700;color:var(--cyan)}
+.h-accs{font-size:11px;color:var(--muted);margin-top:3px}
+
+.h-detail-name{font-size:20px;font-weight:700;color:#fff;margin-bottom:16px}
+.h-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:22px}
+.mini-kpi{background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:14px 16px}
+.mini-lbl{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:5px}
+.mini-val{font-size:20px;font-weight:700;color:#fff}
+
+.divider{height:1px;background:var(--border);margin:20px 0}
+.text-muted{color:var(--muted)}
+.fw7{font-weight:700}
+.no-data{text-align:center;padding:48px;color:var(--muted);font-size:15px}
+
+@media(max-width:1100px){.kpi-grid{grid-template-columns:repeat(3,1fr)}.h-kpis{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:700px){.wrap{padding:14px}.kpi-grid{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div>
+    <h1>Pipeline 2026 — Hunting Instore</h1>
+    <div class="sub">MercadoPago · Supervisión Comercial</div>
+  </div>
+  <div class="hdr-right">
+    <div><span class="tag" id="liveTag">EN VIVO</span></div>
+    <div id="updatedTxt"></div>
+  </div>
+</div>
+
+<div class="wrap">
+  <!-- KPIs -->
+  <div class="kpi-grid" id="kpiGrid"></div>
+
+  <!-- Main Chart -->
+  <div class="sec">
+    <div class="sec-hdr">
+      <span class="sec-title">Evolución TPV vs Plan — 2026</span>
+      <span class="sec-meta">Mensual · USD</span>
+    </div>
+    <div class="sec-body">
+      <div class="chart-box" style="height:320px"><canvas id="mainChart"></canvas></div>
+    </div>
+  </div>
+
+  <!-- Monthly Table -->
+  <div class="sec">
+    <div class="sec-hdr">
+      <span class="sec-title">Detalle Mensual</span>
+    </div>
+    <div class="sec-body no-pad">
+      <table>
+        <thead>
+          <tr>
+            <th>Mes</th>
+            <th class="r">Plan</th>
+            <th class="r">TPV Current</th>
+            <th class="r">TPV New</th>
+            <th class="r">Total TPV</th>
+            <th class="r">Gap</th>
+            <th class="r">% vs Plan</th>
+          </tr>
+        </thead>
+        <tbody id="monthTbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Hunter Section -->
+  <div class="sec">
+    <div class="sec-hdr">
+      <span class="sec-title">Pipeline por Hunter</span>
+      <select class="hunter-sel" id="hunterSel" onchange="renderHunter(this.value)">
+        <option value="">▸  Todas las hunters</option>
+      </select>
+    </div>
+    <div class="sec-body" id="hunterBody"></div>
+  </div>
+</div>
+
+<script>
+const D = {"updated": "8 May 2026 18:12", "today_ym": "202605", "cur_idx": 4, "cur_label": "May", "month_keys": ["202601", "202602", "202603", "202604", "202605", "202606", "202607", "202608", "202609", "202610", "202611", "202612"], "month_labels": ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"], "future_idx": 4, "kpi": {"plan": 3100000.0, "plan_fmt": "$3.10M", "current": 1374000.0, "current_fmt": "$1.37M", "new": 0.0, "new_fmt": "$0", "total": 1374000.0, "total_fmt": "$1.37M", "gap": -1726000.0, "gap_fmt": "$-1.73M", "pct": 44.3, "cur_label": "May"}, "monthly": [{"ym": "202601", "label": "Ene", "is_cur": false, "plan": 0.0, "current": 0.0, "new": 0.0, "total": 0.0, "gap": 0.0, "pct": 0}, {"ym": "202602", "label": "Feb", "is_cur": false, "plan": 0.0, "current": 0.0, "new": 0.0, "total": 0.0, "gap": 0.0, "pct": 0}, {"ym": "202603", "label": "Mar", "is_cur": false, "plan": 0.0, "current": 0.0, "new": 0.0, "total": 0.0, "gap": 0.0, "pct": 0}, {"ym": "202604", "label": "Abr", "is_cur": false, "plan": 3100000.0, "current": 1453369.0, "new": 1076191.0, "total": 2529560.0, "gap": -570440.0, "pct": 81.6}, {"ym": "202605", "label": "May", "is_cur": true, "plan": 3100000.0, "current": 1374000.0, "new": 0.0, "total": 1374000.0, "gap": -1726000.0, "pct": 44.3}, {"ym": "202606", "label": "Jun", "is_cur": false, "plan": 3566667.0, "current": 2640000.0, "new": 0.0, "total": 2640000.0, "gap": -926667.0, "pct": 74.0}, {"ym": "202607", "label": "Jul", "is_cur": false, "plan": 4033333.0, "current": 5420000.0, "new": 0.0, "total": 5420000.0, "gap": 1386667.0, "pct": 134.4}, {"ym": "202608", "label": "Ago", "is_cur": false, "plan": 4500000.0, "current": 9175000.0, "new": 0.0, "total": 9175000.0, "gap": 4675000.0, "pct": 203.9}, {"ym": "202609", "label": "Sep", "is_cur": false, "plan": 4833333.0, "current": 10235000.0, "new": 0.0, "total": 10235000.0, "gap": 5401667.0, "pct": 211.8}, {"ym": "202610", "label": "Oct", "is_cur": false, "plan": 5166667.0, "current": 5180000.0, "new": 0.0, "total": 5180000.0, "gap": 13333.0, "pct": 100.3}, {"ym": "202611", "label": "Nov", "is_cur": false, "plan": 5500000.0, "current": 2640000.0, "new": 0.0, "total": 2640000.0, "gap": -2860000.0, "pct": 48.0}, {"ym": "202612", "label": "Dic", "is_cur": false, "plan": 5500000.0, "current": 2260000.0, "new": 0.0, "total": 2260000.0, "gap": -3240000.0, "pct": 41.1}], "hunters": {"Tomas Crespi": {"name": "Tomas Crespi", "monthly": {"202601": 0.0, "202602": 0.0, "202603": 0.0, "202604": 0.0, "202605": 0.0, "202606": 890000.0, "202607": 2870000.0, "202608": 4160000.0, "202609": 5190000.0, "202610": 5290000.0, "202611": 5610000.0, "202612": 5610000.0}, "plan": {}, "has_plan": false, "total_pipe": 29620000.0, "future_pipe": 29620000.0, "future_plan": 0, "accounts": [{"name": "Jet BA", "eta": "202606", "eta_label": "Jun", "monthly": {"202601": 0.0, "202602": 0.0, "202603": 0.0, "202604": 0.0, "202605": 0.0, "202606": 130000.0, "202607": 180000.0, "202608": 180000.0, "202609": 180000.0, "202610": 180000.0, "202611": 180000.0, "202612": 180000.0}, "total": 1210000.0}, {"name": "Chocorisimo", "eta": "202606", "eta_label": "Jun", "monthly": {"202601": 0.0, "202602": 0.0, "202603": 0.0, "202604": 0.0, "202605": 0.0, "202606": 500000.0, "202607": 600000.0, "202608": 780000.0, "202609": 780000.0, "202610": 780000.0, "202611": 1100000.0, "202612": 1100000.0}, "total": 5640000.0}, {"name": "Farmacias Grupo Sarti", "eta": "202606", "eta_label": "Jun", "monthly": {"202601": 0.0, "202602": 0.0, "202603": 0.0, "202604": 0.0, "202605": 0.0, "202606": 140000.0, "202607": 200000.0, "202608": 200000.0, "202609": 200000.0, "202610": 200000.0, "202611": 200000.0, "202612": 200000.0}, "total": 1340000.0}, {"name": "MueblesYSillones.com", "eta": "202606", "eta_label": "Jun", "monthly": {"202601": 0.0, "202602": 0.0, "202603": 0.0, "202604": 0.0, "202605": 0.0, "202606": 120000.0, "202607": 150000.0, "202608": 250000.0, "202609": 300000.0, "202610": 300000.0, "202611": 300000.0, "202612": 300000.0}, "total": 1720000.0}, {"name": "Brozziano", "eta": "202607", "eta_label": "Jul", "monthly": {"202601": 0.0, "202602": 0.0, "202603": 0.0, "202604": 0.0, "202605": 0.0, "202606": 0.0, "202607": 120000.0, "202608": 200000.0, "202609": 300000.0, "202610": 300000.0, "202611": 300000.0, "202612": 300000.0}, "total": 1520000.0}, {"name": "CAS Hormigones y Materiales", "eta": "202607", "eta_label": "Jul", "monthly": {"202601": 0.0, "202602": 0.0, "202603": 0.0, "202604": 0.0, "202605": 0.0, "202606": 0.0, "202607": 70000.0, "202608": 100000.0, "202609": 125000.0, "202610": 125000.0, "202611": 125000.0, "202612": 125000.0}, "total": 670000.0}, {"name": "Cooperativa Agropecuaria Necochea", "eta": "202607", "eta_label": "Jul", "monthly": {"202601": 0.0, "202602": 0.0, "202603": 0.0, "202604": 0.0, "202605": 0.0, "202606": 0.0, "202607": 70000.0, "202608": 140000.0, "202609": 200000.0, "202610": 200000.0, "202611": 200000.0, "202612": 200000.0}, "total": 1010000.0}, {"name": "Farmacia Lopez", "eta": "202607", "eta_label": "Jul", "monthly": {"202601": 0.0, "202602": 0.0, "202603": 0.0, "202604": 0.0, "202605": 0.0, "202606": 0.0, "202607": 140000.0, "202608": 230000.0, "202609": 300000.0, "202610": 300000.0, "202611": 300000.0, "202612": 300000.0}, "total": 1570000.0}, {"name": "Blest", "eta": "202607", "eta_label": "Jul", "monthly": {"202601": 0.0, "202602": 0.0, "202603": 0.0, "202604": 0.0, "202605": 0.0, "202606": 0.0, "202607": 180000.0, "202608": 280000.0, "202609": 280000.0, "202610": 280000.0, "202611": 280000.0, "202612": 280000.0}, "total": 1580000.0}, {"name": "Iglu", "eta": "202607", "eta_label": "Jul", "monthly": {"202601": 0.0, "202602": 0.0, "202603": 0.0, "202604": 0.0, "202605": 0.0, "202606": 0.0, "202607": 140000.0, "202608": 250000.0, "202609": 350000.0, "202610": 500000.0, "202611": 500000.0, "202612": 500000.0}, "total": 2240000.0}, {"name": "LABIRRABAR_OFICIAL", "eta": "202607", "eta_label": "Jul", "monthly": {"202601": 0.0, "202602": 0.0, "202603": 0.0, "202604": 0.0, "202605": 0.0, "202606": 0.0, "202607": 100000.0, "202608": 300000.0, "202609": 500000.0, "202610": 500000.0, "202611": 500000.0, "202612": 500000.0}, "total": 2400000.0}, {"name": "Parrillas Burger", "eta": "202607", "eta_label": "Jul", "monthly": {"202601": 0.0, "202602": 0.0, "202603": 0.0, "202604": 0.0, "202605": 0.0, "202606": 0.0, "202607": 100000.0, "202608": 150000.0, "202609": 200000.0, "202610": 150000.0, "202611": 150000.0, "202612": 150000.0}, "total": 900000.0}, {"name": "Pizzeria La Americana", "eta": "202607", "eta_label": "Jul", "monthly": {"202601": 0.0, "202602": 0.0, "202603": 0.0, "202604": 0.0, "202605": 0.0, "202606": 0.0, "202607": 200000.0, "202608": 300000.0, "202609": 500000.0, "202610": 500000.0, "202611": 500000.0, "202612": 500000.0}, "total": 2500000.0}, {"name": "Pizzeria los maestros", "eta": "202607", "eta_label": "Jul", "monthly": {"202601": 0.0, "202602": 0.0, "202603": 0.0, "202604": 0.0, "202605": 0.0, "202606": 0.0, "202607": 60000.0, "202608": 100000.0, "202609": 125000.0, "202610": 125000.0, "202611": 125000.0, "202612": 125000.0}, "total": 660000.0}, {"name": "Sacoa", "eta": "202607", "eta_label": "Jul", "monthly": {"202601": 0.0, "202602": 0.0, "202603": 0.0, "202604": 0.0, "202605": 0.0, "202606": 0.0, "202607": 160000.0, "202608": 200000.0, "202609": 250000.0, "202610": 250000.0, "202611": 250000.0, "202612": 250000.0}, "total": 1360000.0}, {"name": "Dandy Restaurant & Grill.", "eta": "202608", "eta_label": "Ago", "monthly": {"202601": 0.0, "202602": 0.0, "202603": 0.0, "202604": 0.0, "202605": 0.0, "202606": 0.0, "202607": 400000.0, "202608": 500000.0, "202609": 600000.0, "202610": 600000.0, "202611": 600000.0, "202612": 600000.0}, "total": 3300000.0}]}, "Santiago Balestrieri": {"name": "Santiago Balestrieri", "monthly": {"202601": 0.0, "202602": 0.0, "202603": 0.0, "202604": 0.0, "202605": 0.0, "202606": 145000.0, "202607": 625000.0, "202608": 2025000.0, "202609": 2860000.0, "202610": 3345000.0, "202611": 3715000.0, "202612": 3850000.0}, "plan": {}, "has_plan": false, "total_pipe": 16565000.0, "future_pipe": 16565000.0, "future_plan": 0, "accounts": [{"name": "ABSweaters", "eta": "202606", "eta_label": "Jun", "monthly": {"202601": 0.0, "202602": 0.0, "202603": 0.0, "202604": 0.0, "202605": 0.0, "202606": 70000.0, "202607": 100000.0, "202608": 110000.0, "202609": 110000.0, "202610": 125000.0, "202611": 125000.0, "202612": 130000.0}, "total": 770000.0}, {"name": "Avi Cuatro", "eta": "202606", "eta_label": "Jun", "monthly": {"202601": 0.0, "202602": 0.0, "202603": 0.0, "202604": 0.0, "202605": 0.0, "202606": 75000.0, "202607": 100000.0, "202608": 125000.0, "202609": 125000.0, "202610": 125000.0, "202611": 125000.0, "202612": 125000.0}, "total": 800000.0}, {"name": "Municipalidad Chivilcoy", "eta": "202606", "eta_label": "Jun", "monthly": {"202601": 0.0, "202602": 0.0, "202603": 0.0, "202604": 0.0, "202605": 0.0, "202606": 0.0, "202607": 0.0, "202608": 200000.0, "202609": 250000.0, "202610": 300000.0, "202611": 300000.0, "202612": 300000.0}, "total": 1350000.0}, {"name": "Carniceria La Merced", "eta": "202607", "eta_label": "Jul", "monthly": {"202601": 0.0, "202602": 0.0, "202603": 0.0, "202604": 0.0, "202605": 0.0, "202606": 0.0, "202607": 75000.0, "202608": 100000.0, "202609": 120000.0, "202610": 120000.0, "202611": 120000.0, "202612": 120000.0}, "total": 655000.0}, {"name": "Cárnicos Del Sur", "eta": "202607", "eta_label": "Jul", "monthly": {"202601": 0.0, "202602": 0.0, "202603": 0.0, "202604": 0.0, "202605": 0.0, "202606": 0.0, "202607": 120000.0, "202608": 150000.0, "202609": 180000.0, "202610": 200000.0, "202611": 200000.0, "202612": 200000.0}, "total": 1050000.0}, {"name": "Cheverry", "eta": "202607", "eta_label": "Jul", "monthly": {"202601": 0.0, "202602": 0.0, "202603": 0.0, "202604": 0.0, "202605": 0.0, "202606": 0.0, "202607": 80000.0, "202608": 100000.0, "202609": 100000.0, "202610": 120000.0, "202611": 120000.0, "202612": 120000.0}, "total": 640000.0}, {"name": "COPY RENT", "eta": "202607", "eta_label": "Jul", "monthly": {"202601": 0.0, "202602": 0.0, "202603": 0.0, "202604": 0.0, "202605": 0.0, "202606": 0.0, "202607": 80000.0, "202608": 110000.0, "202609": 125000.0, "202610": 125000.0, "202611": 125000.0, "202612": 125000.0}, "total": 690000.0}, {"name": "Heladeria Berezia", "eta": "202607", "eta_label": "Jul", "monthly": {"202601": 0.0, "202602": 0.0, "202603": 0.0, "202604": 0.0, "202605": 0.0, "202606": 0.0, "202607": 70000.0, "202608": 80000.0, "202609": 100000.0, "202610": 80000.0, "202611": 100000.0, "202612": 100000.0}, "total": 530000.0}, {"name": "El Condor Confiteria", "eta": "202608", "eta_label": "Ago", "monthly": {"202601": 0.0, "202602": 0.0, "202603": 0.0, "202604": 0.0, "202605": 0.0, "202606": 0.0, "202607": 0.0, "202608": 70000.0, "202609": 100000.0, "202610": 100000.0, "202611": 120000.0, "202612": 120000.0}, "total": 510000.0}, {"name": "El pollo Ricardo y la Mojarrita", "eta": "202608", "eta_label": "Ago", "monthly": {"202601": 0.0, "202602": 0.0, "202603": 0.0, "202604": 0.0, "202605": 0.0, "202606": 0.0, "202607": 0.0, "202608": 80000.0, "202609": 100000.0, "202610": 100000.0, "202611": 100000.0, "202612": 100000.0}, "total": 480000.0}, {"name": "Frigorifico Fantuz SA", "eta": "202608", "eta_label": "Ago", "monthly": {"202601": 0.0, "202602": 0.0, "202603": 0.0, "202604": 0.0, "202605": 0.0, "202606": 0.0, "202607": 0.0, "202608": 100000.0, "202609": 100000.0, "202610": 100000.0, "202611": 100000.0, "202612": 100000.0}, "total": 500000.0}, {"name": "Le Panem.", "eta": "202608", "eta_label": "Ago", "monthly": {"202601": 0.0, "202602": 0.0, "202603": 0.0, "202604": 0.0, "202605": 0.0, "202606": 0.0, "202607": 0.0, "202608": 100000.0, "202609": 150000.0, "202610": 200000.0, "202611": 250000.0, "202612": 300000.0}, "total": 1000000.0}, {"name": "PUNTOFARMA", "eta": "202608", "eta_label": "Ago", "monthly": {"202601": 0.0, "202602": 0.0, "202603": 0.0, "202604": 0.0, "202605": 0.0, "202606": 0.0, "202607": 0.0, "202608": 700000.0, "202609": 1000000.0, "202610": 1200000.0, "202611": 1400000.0, "202612": 1400000.0}, "total": 5700000.0}, {"name": "Elibian perfumerias", "eta": "202608", "eta_label": "Ago", "monthly": {"202601": 0.0, "202602": 0.0, "202603": 0.0, "202604": 0.0, "202605": 0.0, "202606": 0.0, "202607": 0.0, "202608": 0.0, "202609": 100000.0, "202610": 130000.0, "202611": 140000.0, "202612": 160000.0}, "total": 530000.0}, {"name": "Animalia", "eta": "202608", "eta_label": "Ago", "monthly": {"202601": 0.0, "202602": 0.0, "202603": 0.0, "202604": 0.0, "202605": 0.0, "202606": 0.0, "202607": 0.0, "202608": 0.0, "202609": 80000.0, "202610": 100000.0, "202611": 120000.0, "202612": 120000.0}, "total": 420000.0}, {"name": "Class Life", "eta": "202608", "eta_label": "Ago", "monthly": {"202601": 0.0, "202602": 0.0, "202603": 0.0, "202604": 0.0, "202605": 0.0, "202606": 0.0, "202607": 0.0, "202608": 0.0, "202609": 120000.0, "202610": 120000.0, "202611": 120000.0, "202612": 130000.0}, "total": 490000.0}, {"name": "Galeno", "eta": "202610", "eta_label": "Oct", "monthly": {"202601": 0.0, "202602": 0.0, "202603": 0.0, "202604": 0.0, "202605": 0.0, "202606": 0.0, "202607": 0.0, "202608": 0.0, "202609": 0.0, "202610": 100000.0, "202611": 150000.0, "202612": 200000.0}, "total": 450000.0}]}, "Bautista Gatti": {"name": "Bautista Gatti", "monthly": {"202601": 0.0, "202602": 0.0, "202603": 0.0, "202604": 0.0, "202605": 100000.0, "202606": 950000.0, "202607": 2950000.0, "202608": 3900000.0, "202609": 4000000.0, "202610": 4000000.0, "202611": 4000000.0, "202612": 4000000.0}, "plan": {}, "has_plan": false, "total_pipe": 23900000.0, "future_pipe": 23900000.0, "future_plan": 0, "accounts": [{"name": "Central de SABORES.", "eta": "202605", "eta_label": "May", "monthly": {"202601": 0.0, "202602": 0.0, "202603": 0.0, "202604": 0.0, "202605": 0.0, "202606": 300000.0, "202607": 500000.0, "202608": 900000.0, "202609": 900000.0, "202610": 900000.0, "202611": 900000.0, "202612": 900000.0}, "total": 5300000.0}, {"name": "Grupo Univista", "eta": "202605", "eta_label": "May", "monthly": {"202601": 0.0, "202602": 0.0, "202603": 0.0, "202604": 0.0, "202605": 100000.0, "202606": 300000.0, "202607": 600000.0, "202608": 600000.0, "202609": 600000.0, "202610": 600000.0, "202611": 600000.0, "202612": 600000.0}, "total": 4000000.0}, {"name": "Didactikids", "eta": "202606", "eta_label": "Jun", "monthly": {"202601": 0.0, "202602": 0.0, "202603": 0.0, "202604": 0.0, "202605": 0.0, "202606": 100000.0, "202607": 250000.0, "202608": 250000.0, "202609": 250000.0, "202610": 250000.0, "202611": 250000.0, "202612": 250000.0}, "total": 1600000.0}, {"name": "Mi Villano Express", "eta": "202606", "eta_label": "Jun", "monthly": {"202601": 0.0, "202602": 0.0, "202603": 0.0, "202604": 0.0, "202605": 0.0, "202606": 250000.0, "202607": 350000.0, "202608": 350000.0, "202609": 350000.0, "202610": 350000.0, "202611": 350000.0, "202612": 350000.0}, "total": 2350000.0}, {"name": "Bosqueto muebles", "eta": "202607", "eta_label": "Jul", "monthly": {"202601": 0.0, "202602": 0.0, "202603": 0.0, "202604": 0.0, "202605": 0.0, "202606": 0.0, "202607": 100000.0, "202608": 250000.0, "202609": 250000.0, "202610": 250000.0, "202611": 250000.0, "202612": 250000.0}, "total": 1350000.0}, {"name": "Brocasoles SRL", "eta": "202607", "eta_label": "Jul", "monthly": {"202601": 0.0, "202602": 0.0, "202603": 0.0, "202604": 0.0, "202605": 0.0, "202606": 0.0, "202607": 250000.0, "202608": 250000.0, "202609": 250000.0, "202610": 250000.0, "202611": 250000.0, "202612": 250000.0}, "total": 1500000.0}, {"name": "GRUPO UTOPIA", "eta": "202607", "eta_label": "Jul", "monthly": {"202601": 0.0, "202602": 0.0, "202603": 0.0, "202604": 0.0, "202605": 0.0, "202606": 0.0, "202607": 200000.0, "202608": 200000.0, "202609": 200000.0, "202610": 200000.0, "202611": 200000.0, "202612": 200000.0}, "total": 1200000.0}, {"name": "KYO MOTOS SRL.", "eta": "202607", "eta_label": "Jul", "monthly": {"202601": 0.0, "202602": 0.0, "202603": 0.0, "202604": 0.0, "202605": 0.0, "202606": 0.0, "202607": 250000.0, "202608": 250000.0, "202609": 250000.0, "202610": 250000.0, "202611": 250000.0, "202612": 250000.0}, "total": 1500000.0}, {"name": "MILANGA Y CO SRL.", "eta": "202607", "eta_label": "Jul", "monthly": {"202601": 0.0, "202602": 0.0, "202603": 0.0, "202604": 0.0, "202605": 0.0, "202606": 0.0, "202607": 150000.0, "202608": 250000.0, "202609": 250000.0, "202610": 250000.0, "202611": 250000.0, "202612": 250000.0}, "total": 1400000.0}, {"name": "Optica Battilana", "eta": "202607", "eta_label": "Jul", "monthly": {"202601": 0.0, "202602": 0.0, "202603": 0.0, "202604": 0.0, "202605": 0.0, "202606": 0.0, "202607": 300000.0, "202608": 300000.0, "202609": 300000.0, "202610": 300000.0, "202611": 300000.0, "202612": 300000.0}, "total": 1800000.0}, {"name": "Lazaro", "eta": "202608", "eta_label": "Ago", "monthly": {"202601": 0.0, "202602": 0.0, "202603": 0.0, "202604": 0.0, "202605": 0.0, "202606": 0.0, "202607": 0.0, "202608": 300000.0, "202609": 400000.0, "202610": 400000.0, "202611": 400000.0, "202612": 400000.0}, "total": 1900000.0}]}, "Florencia Aguirre": {"name": "Florencia Aguirre", "monthly": {"202601": 2990000.0, "202602": 0.0, "202603": 0.0, "202604": 0.0, "202605": 100000.0, "202606": 580000.0, "202607": 970000.0, "202608": 1630000.0, "202609": 2040000.0, "202610": 2610000.0, "202611": 2610000.0, "202612": 2730000.0}, "plan": {}, "has_plan": false, "total_pipe": 16260000.0, "future_pipe": 13270000.0, "future_plan": 0, "accounts": [{"name": "Le Piume", "eta": "202605", "eta_label": "May", "monthly": {"202601": 200000.0, "202602": 0.0, "202603": 0.0, "202604": 0.0, "202605": 50000.0, "202606": 150000.0, "202607": 200000.0, "202608": 200000.0, "202609": 200000.0, "202610": 200000.0, "202611": 200000.0, "202612": 220000.0}, "total": 1620000.0}, {"name": "Venga Madre", "eta": "202605", "eta_label": "May", "monthly": {"202601": 200000.0, "202602": 0.0, "202603": 0.0, "202604": 0.0, "202605": 50000.0, "202606": 150000.0, "202607": 170000.0, "202608": 200000.0, "202609": 200000.0, "202610": 220000.0, "202611": 200000.0, "202612": 230000.0}, "total": 1620000.0}, {"name": "Buchardo Restaurante", "eta": "202606", "eta_label": "Jun", "monthly": {"202601": 210000.0, "202602": 0.0, "202603": 0.0, "202604": 0.0, "202605": 0.0, "202606": 0.0, "202607": 0.0, "202608": 0.0, "202609": 0.0, "202610": 0.0, "202611": 0.0, "202612": 0.0}, "total": 210000.0}, {"name": "Ro Medical", "eta": "202606", "eta_label": "Jun", "monthly": {"202601": 300000.0, "202602": 0.0, "202603": 0.0, "202604": 0.0, "202605": 0.0, "202606": 100000.0, "202607": 150000.0, "202608": 200000.0, "202609": 250000.0, "202610": 300000.0, "202611": 250000.0, "202612": 300000.0}, "total": 1850000.0}, {"name": "Zueka", "eta": "202606", "eta_label": "Jun", "monthly": {"202601": 220000.0, "202602": 0.0, "202603": 0.0, "202604": 0.0, "202605": 0.0, "202606": 130000.0, "202607": 150000.0, "202608": 170000.0, "202609": 200000.0, "202610": 210000.0, "202611": 200000.0, "202612": 220000.0}, "total": 1500000.0}, {"name": "Cinema Devoto", "eta": "202607", "eta_label": "Jul", "monthly": {"202601": 300000.0, "202602": 0.0, "202603": 0.0, "202604": 0.0, "202605": 0.0, "202606": 50000.0, "202607": 100000.0, "202608": 150000.0, "202609": 200000.0, "202610": 300000.0, "202611": 300000.0, "202612": 300000.0}, "total": 1700000.0}, {"name": "Duty Free Iguazu", "eta": "202607", "eta_label": "Jul", "monthly": {"202601": 800000.0, "202602": 0.0, "202603": 0.0, "202604": 0.0, "202605": 0.0, "202606": 0.0, "202607": 0.0, "202608": 300000.0, "202609": 500000.0, "202610": 800000.0, "202611": 800000.0, "202612": 800000.0}, "total": 4000000.0}, {"name": "Genda Laboratorio", "eta": "202607", "eta_label": "Jul", "monthly": {"202601": 260000.0, "202602": 0.0, "202603": 0.0, "202604": 0.0, "202605": 0.0, "202606": 0.0, "202607": 0.0, "202608": 150000.0, "202609": 200000.0, "202610": 230000.0, "202611": 260000.0, "202612": 260000.0}, "total": 1360000.0}, {"name": "Helados Lado Bueno", "eta": "202607", "eta_label": "Jul", "monthly": {"202601": 500000.0, "202602": 0.0, "202603": 0.0, "202604": 0.0, "202605": 0.0, "202606": 0.0, "202607": 200000.0, "202608": 260000.0, "202609": 290000.0, "202610": 350000.0, "202611": 400000.0, "202612": 400000.0}, "total": 2400000.0}]}, "Valentina Burgos": {"name": "Valentina Burgos", "monthly": {"202601": 0.0, "202602": 0.0, "202603": 0.0, "202604": 0.0, "202605": 230000.0, "202606": 1255000.0, "202607": 1990000.0, "202608": 2440000.0, "202609": 3450000.0, "202610": 4720000.0, "202611": 6170000.0, "202612": 6650000.0}, "plan": {}, "has_plan": false, "total_pipe": 26905000.0, "future_pipe": 26905000.0, "future_plan": 0, "accounts": [{"name": "Grupo Divaflo", "eta": "202605", "eta_label": "May", "monthly": {"202601": 0.0, "202602": 0.0, "202603": 0.0, "202604": 0.0, "202605": 150000.0, "202606": 400000.0, "202607": 650000.0, "202608": 650000.0, "202609": 650000.0, "202610": 650000.0, "202611": 650000.0, "202612": 650000.0}, "total": 4450000.0}, {"name": "MPR Merch", "eta": "202605", "eta_label": "May", "monthly": {"202601": 0.0, "202602": 0.0, "202603": 0.0, "202604": 0.0, "202605": 80000.0, "202606": 130000.0, "202607": 130000.0, "202608": 130000.0, "202609": 130000.0, "202610": 130000.0, "202611": 130000.0, "202612": 130000.0}, "total": 990000.0}, {"name": "Ticketek MLA", "eta": "202606", "eta_label": "Jun", "monthly": {"202601": 0.0, "202602": 0.0, "202603": 0.0, "202604": 0.0, "202605": 0.0, "202606": 600000.0, "202607": 800000.0, "202608": 700000.0, "202609": 700000.0, "202610": 700000.0, "202611": 700000.0, "202612": 700000.0}, "total": 4900000.0}, {"name": "APIO VERDE", "eta": "202606", "eta_label": "Jun", "monthly": {"202601": 0.0, "202602": 0.0, "202603": 0.0, "202604": 0.0, "202605": 0.0, "202606": 125000.0, "202607": 140000.0, "202608": 160000.0, "202609": 160000.0, "202610": 160000.0, "202611": 160000.0, "202612": 160000.0}, "total": 1065000.0}, {"name": "India Style.", "eta": "202607", "eta_label": "Jul", "monthly": {"202601": 0.0, "202602": 0.0, "202603": 0.0, "202604": 0.0, "202605": 0.0, "202606": 0.0, "202607": 120000.0, "202608": 150000.0, "202609": 150000.0, "202610": 150000.0, "202611": 150000.0, "202612": 150000.0}, "total": 870000.0}, {"name": "La Codeana", "eta": "202607", "eta_label": "Jul", "monthly": {"202601": 0.0, "202602": 0.0, "202603": 0.0, "202604": 0.0, "202605": 0.0, "202606": 0.0, "202607": 150000.0, "202608": 200000.0, "202609": 220000.0, "202610": 220000.0, "202611": 220000.0, "202612": 220000.0}, "total": 1230000.0}, {"name": "The Food Truck Store", "eta": "202608", "eta_label": "Ago", "monthly": {"202601": 0.0, "202602": 0.0, "202603": 0.0, "202604": 0.0, "202605": 0.0, "202606": 0.0, "202607": 0.0, "202608": 150000.0, "202609": 170000.0, "202610": 220000.0, "202611": 220000.0, "202612": 220000.0}, "total": 980000.0}, {"name": "Fava Paseo de Compras", "eta": "202608", "eta_label": "Ago", "monthly": {"202601": 0.0, "202602": 0.0, "202603": 0.0, "202604": 0.0, "202605": 0.0, "202606": 0.0, "202607": 0.0, "202608": 300000.0, "202609": 500000.0, "202610": 750000.0, "202611": 750000.0, "202612": 750000.0}, "total": 3050000.0}, {"name": "Burgues.", "eta": "202609", "eta_label": "Sep", "monthly": {"202601": 0.0, "202602": 0.0, "202603": 0.0, "202604": 0.0, "202605": 0.0, "202606": 0.0, "202607": 0.0, "202608": 0.0, "202609": 400000.0, "202610": 600000.0, "202611": 1000000.0, "202612": 1000000.0}, "total": 3000000.0}, {"name": "Farmacias ABC.", "eta": "202609", "eta_label": "Sep", "monthly": {"202601": 0.0, "202602": 0.0, "202603": 0.0, "202604": 0.0, "202605": 0.0, "202606": 0.0, "202607": 0.0, "202608": 0.0, "202609": 250000.0, "202610": 400000.0, "202611": 450000.0, "202612": 450000.0}, "total": 1550000.0}, {"name": "Educando Jugueterias.", "eta": "202609", "eta_label": "Sep", "monthly": {"202601": 0.0, "202602": 0.0, "202603": 0.0, "202604": 0.0, "202605": 0.0, "202606": 0.0, "202607": 0.0, "202608": 0.0, "202609": 120000.0, "202610": 160000.0, "202611": 160000.0, "202612": 160000.0}, "total": 600000.0}, {"name": "GoPal", "eta": "202610", "eta_label": "Oct", "monthly": {"202601": 0.0, "202602": 0.0, "202603": 0.0, "202604": 0.0, "202605": 0.0, "202606": 0.0, "202607": 0.0, "202608": 0.0, "202609": 0.0, "202610": 150000.0, "202611": 250000.0, "202612": 350000.0}, "total": 750000.0}, {"name": "HoneyWhale Argentina", "eta": "202610", "eta_label": "Oct", "monthly": {"202601": 0.0, "202602": 0.0, "202603": 0.0, "202604": 0.0, "202605": 0.0, "202606": 0.0, "202607": 0.0, "202608": 0.0, "202609": 0.0, "202610": 250000.0, "202611": 350000.0, "202612": 380000.0}, "total": 980000.0}, {"name": "Hunter Douglas", "eta": "202610", "eta_label": "Oct", "monthly": {"202601": 0.0, "202602": 0.0, "202603": 0.0, "202604": 0.0, "202605": 0.0, "202606": 0.0, "202607": 0.0, "202608": 0.0, "202609": 0.0, "202610": 180000.0, "202611": 280000.0, "202612": 280000.0}, "total": 740000.0}, {"name": "Jazmin Chebar", "eta": "202611", "eta_label": "Nov", "monthly": {"202601": 0.0, "202602": 0.0, "202603": 0.0, "202604": 0.0, "202605": 0.0, "202606": 0.0, "202607": 0.0, "202608": 0.0, "202609": 0.0, "202610": 0.0, "202611": 400000.0, "202612": 600000.0}, "total": 1000000.0}, {"name": "Grupo GCDC.", "eta": "202611", "eta_label": "Nov", "monthly": {"202601": 0.0, "202602": 0.0, "202603": 0.0, "202604": 0.0, "202605": 0.0, "202606": 0.0, "202607": 0.0, "202608": 0.0, "202609": 0.0, "202610": 0.0, "202611": 300000.0, "202612": 450000.0}, "total": 750000.0}]}}, "hunter_list": ["Bautista Gatti", "Florencia Aguirre", "Santiago Balestrieri", "Tomas Crespi", "Valentina Burgos"]};
+
+// ── Helpers ──────────────────────────────────────────────────────────────────
+function usd(n, s=false) {
+  if (!n || n === 0) return '$0';
+  if (s && Math.abs(n) >= 1e6) return `$${(n/1e6).toFixed(2)}M`;
+  if (s && Math.abs(n) >= 1e3) return `$${Math.round(n/1e3)}K`;
+  return '$' + Math.round(n).toLocaleString('es-AR');
+}
+function pct(n) { return (n >= 0 ? '+' : '') + n.toFixed(1) + '%'; }
+
+function gapBadge(g, p) {
+  if (g > 0)      return `<span class="badge bg">${usd(g,true)}</span>`;
+  if (p >= 90)    return `<span class="badge ba">${usd(g,true)}</span>`;
+  return `<span class="badge br">${usd(g,true)}</span>`;
+}
+function pctBadge(p) {
+  const c = p >= 100 ? 'bg' : p >= 85 ? 'ba' : 'br';
+  return `<span class="badge ${c}">${p.toFixed(1)}%</span>`;
+}
+function dash(n) { return n > 0 ? usd(n) : '<span class="text-muted">—</span>'; }
+
+// ── Header ────────────────────────────────────────────────────────────────────
+document.getElementById('updatedTxt').textContent = 'Actualizado: ' + D.updated;
+
+// ── KPI Cards ─────────────────────────────────────────────────────────────────
+function buildKpis() {
+  const k = D.kpi;
+  const gapCls = k.gap >= 0 ? 'k-gap-pos' : 'k-gap-neg';
+  document.getElementById('kpiGrid').innerHTML = `
+    <div class="kpi k-plan">
+      <div class="kpi-lbl">Plan ${k.cur_label}</div>
+      <div class="kpi-val">${k.plan_fmt}</div>
+    </div>
+    <div class="kpi k-cur">
+      <div class="kpi-lbl">TPV Current</div>
+      <div class="kpi-val">${k.current_fmt}</div>
+    </div>
+    <div class="kpi k-new">
+      <div class="kpi-lbl">TPV New</div>
+      <div class="kpi-val">${k.new_fmt}</div>
+    </div>
+    <div class="kpi k-total">
+      <div class="kpi-lbl">Total TPV</div>
+      <div class="kpi-val">${k.total_fmt}</div>
+      <div class="kpi-sub">${k.pct.toFixed(1)}% vs Plan</div>
+    </div>
+    <div class="kpi ${gapCls}">
+      <div class="kpi-lbl">Gap vs Plan</div>
+      <div class="kpi-val">${k.gap_fmt}</div>
+    </div>`;
+}
+
+// ── Monthly Table ─────────────────────────────────────────────────────────────
+function buildMonthTable() {
+  const tbody = document.getElementById('monthTbody');
+  tbody.innerHTML = D.monthly.map(r => {
+    const isCur = r.is_cur;
+    return `<tr class="${isCur ? 'cur-row' : ''}">
+      <td class="fw7">${r.label}${isCur ? ' <span class="badge bb">Hoy</span>' : ''}</td>
+      <td class="r">${r.plan > 0 ? usd(r.plan) : '<span class="text-muted">—</span>'}</td>
+      <td class="r">${dash(r.current)}</td>
+      <td class="r">${dash(r.new)}</td>
+      <td class="r fw7">${dash(r.total)}</td>
+      <td class="r">${r.plan > 0 ? gapBadge(r.gap, r.pct) : '<span class="text-muted">—</span>'}</td>
+      <td class="r">${r.plan > 0 ? pctBadge(r.pct) : '<span class="text-muted">—</span>'}</td>
+    </tr>`;
+  }).join('');
+}
+
+// ── Main Chart ────────────────────────────────────────────────────────────────
+let mainC = null;
+function buildMainChart() {
+  const ctx = document.getElementById('mainChart').getContext('2d');
+  const plans  = D.monthly.map(r => r.plan);
+  const totals = D.monthly.map(r => r.total);
+  const pcts   = D.monthly.map(r => r.plan > 0 ? r.pct : null);
+  const ci     = D.cur_idx;
+
+  mainC = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: D.month_labels,
+      datasets: [
+        {
+          label: 'Plan',
+          data: plans,
+          backgroundColor: D.month_labels.map((_,i) => i===ci ? 'rgba(59,130,246,.9)' : 'rgba(59,130,246,.3)'),
+          borderRadius: 4, order: 2,
+        },
+        {
+          label: 'Total TPV',
+          data: totals,
+          backgroundColor: D.month_labels.map((_,i) => i===ci ? 'rgba(16,185,129,.9)' : 'rgba(16,185,129,.3)'),
+          borderRadius: 4, order: 1,
+        },
+        {
+          label: '% vs Plan',
+          data: pcts, type: 'line', yAxisID: 'y2',
+          borderColor: '#f59e0b', backgroundColor: 'rgba(245,158,11,.08)',
+          pointBackgroundColor: pcts.map(p => p === null ? 'transparent' : p >= 100 ? '#10b981' : p >= 85 ? '#f59e0b' : '#ef4444'),
+          pointRadius: 5, tension: .3, spanGaps: false, order: 0,
+        }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      interaction: {intersect:false, mode:'index'},
+      plugins: {
+        legend: {labels:{color:'#8892a4',font:{size:12},boxWidth:14}},
+        tooltip: {
+          backgroundColor:'#181d2d', borderColor:'#252d45', borderWidth:1,
+          titleColor:'#fff', bodyColor:'#8892a4',
+          callbacks: {
+            label(c) {
+              if (c.dataset.label === '% vs Plan') return c.parsed.y != null ? ` ${c.parsed.y.toFixed(1)}%` : '';
+              return ` ${c.dataset.label}: ${usd(c.parsed.y)}`;
+            }
+          }
+        }
+      },
+      scales: {
+        x: {grid:{color:'rgba(37,45,69,.7)'}, ticks:{color:'#8892a4'}},
+        y: {
+          grid:{color:'rgba(37,45,69,.7)'},
+          ticks:{color:'#8892a4', callback: v => v>=1e6?`$${v/1e6}M`:v>=1e3?`$${v/1e3}K`:`$${v}`}
+        },
+        y2: {
+          position:'right', grid:{drawOnChartArea:false},
+          ticks:{color:'#f59e0b', callback: v => v+'%'}
+        }
+      }
+    }
+  });
+}
+
+// ── Hunter Dropdown ───────────────────────────────────────────────────────────
+function populateSelect() {
+  const sel = document.getElementById('hunterSel');
+  D.hunter_list.forEach(h => {
+    const o = document.createElement('option');
+    o.value = h; o.textContent = h; sel.appendChild(o);
+  });
+}
+
+// ── Hunter: Todas ─────────────────────────────────────────────────────────────
+let hunterC = null;
+function renderAllHunters() {
+  const body = document.getElementById('hunterBody');
+
+  const cards = D.hunter_list.map(h => {
+    const hd = D.hunters[h];
+    return `<div class="h-card" onclick="document.getElementById('hunterSel').value='${h}';renderHunter('${h}')">
+      <div class="h-name">${h}</div>
+      <div class="h-pipe">${usd(hd.future_pipe, true)}</div>
+      <div class="h-accs">${hd.accounts.length} cuenta${hd.accounts.length !== 1 ? 's' : ''} · resto del año</div>
+    </div>`;
+  }).join('');
+
+  body.innerHTML = `<div class="h-cards">${cards}</div>
+    <div class="divider"></div>
+    <div class="chart-box" style="height:280px"><canvas id="hCompChart"></canvas></div>`;
+
+  if (hunterC) { hunterC.destroy(); hunterC = null; }
+  const ctx = document.getElementById('hCompChart').getContext('2d');
+  const names = D.hunter_list;
+  const palette = ['#3b82f6','#10b981','#8b5cf6','#f59e0b','#06b6d4','#ef4444','#ec4899','#84cc16'];
+
+  const datasets = D.month_labels.map((lbl, mi) => ({
+    label: lbl,
+    data: names.map(h => D.hunters[h].monthly[D.month_keys[mi]] || 0),
+    backgroundColor: palette[mi % palette.length] + (mi < D.cur_idx ? '44' : 'bb'),
+    borderRadius: 2,
+  }));
+
+  hunterC = new Chart(ctx, {
+    type: 'bar',
+    data: {labels: names, datasets},
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: {labels:{color:'#8892a4',font:{size:11},boxWidth:12}},
+        tooltip: {
+          backgroundColor:'#181d2d', borderColor:'#252d45', borderWidth:1,
+          titleColor:'#fff', bodyColor:'#8892a4',
+          callbacks: {label: c => ` ${c.dataset.label}: ${usd(c.parsed.y)}`}
+        }
+      },
+      scales: {
+        x: {stacked:true, grid:{color:'rgba(37,45,69,.7)'}, ticks:{color:'#8892a4'}},
+        y: {stacked:true, grid:{color:'rgba(37,45,69,.7)'},
+            ticks:{color:'#8892a4', callback: v => v>=1e6?`$${v/1e6}M`:v>=1e3?`$${v/1e3}K`:`$${v}`}}
+      }
+    }
+  });
+}
+
+// ── Hunter: Individual ────────────────────────────────────────────────────────
+function renderHunter(name) {
+  if (!name) { renderAllHunters(); return; }
+  const hd = D.hunters[name];
+  if (!hd) { renderAllHunters(); return; }
+
+  const futKeys = D.month_keys.slice(D.future_idx);
+  const futLbls = D.month_labels.slice(D.future_idx);
+  const gap     = hd.has_plan ? hd.future_pipe - hd.future_plan : null;
+  const covPct  = hd.has_plan && hd.future_plan > 0 ? hd.future_pipe / hd.future_plan * 100 : null;
+
+  const kpisHtml = `
+    <div class="h-detail-name">${name}</div>
+    <div class="h-kpis">
+      <div class="mini-kpi">
+        <div class="mini-lbl">Pipeline (resto del año)</div>
+        <div class="mini-val" style="color:var(--cyan)">${usd(hd.future_pipe,true)}</div>
+      </div>
+      ${hd.has_plan ? `
+        <div class="mini-kpi">
+          <div class="mini-lbl">Plan Restante</div>
+          <div class="mini-val">${usd(hd.future_plan,true)}</div>
+        </div>
+        <div class="mini-kpi">
+          <div class="mini-lbl">Gap vs Plan</div>
+          <div class="mini-val" style="color:${gap>=0?'var(--green)':'var(--red)'}">
+            ${(gap>=0?'+':'')}${usd(gap,true)}
+          </div>
+        </div>
+        <div class="mini-kpi">
+          <div class="mini-lbl">Cobertura</div>
+          <div class="mini-val" style="color:${covPct>=100?'var(--green)':covPct>=85?'var(--amber)':'var(--red)'}">
+            ${covPct.toFixed(1)}%
+          </div>
+        </div>
+      ` : `
+        <div class="mini-kpi">
+          <div class="mini-lbl">Cuentas activas</div>
+          <div class="mini-val">${hd.accounts.length}</div>
+        </div>
+      `}
+    </div>`;
+
+  const chartHtml = `<div class="chart-box" style="height:280px"><canvas id="hDetChart"></canvas></div>`;
+
+  // Accounts table (future months)
+  const accRows = hd.accounts.filter(acc => futKeys.some(ym => (acc.monthly[ym]||0) > 0));
+  let tblHtml = '';
+  if (accRows.length) {
+    const colHeaders = futLbls.map(l => `<th class="r">${l}</th>`).join('');
+    const rows = accRows.map(acc => {
+      const cells = futKeys.map(ym => {
+        const v = acc.monthly[ym] || 0;
+        const isEta = acc.eta === ym;
+        return `<td class="r">${v > 0 ? `<span ${isEta?'style="color:#a78bfa;font-weight:700"':''}>${usd(v)}</span>` : '<span class="text-muted">—</span>'}</td>`;
+      }).join('');
+      return `<tr>
+        <td><strong>${acc.name}</strong></td>
+        <td>${acc.eta ? `<span class="badge bp">${acc.eta_label||acc.eta}</span>` : '<span class="text-muted">—</span>'}</td>
+        ${cells}
+        <td class="r fw7" style="color:var(--cyan)">${usd(futKeys.reduce((s,ym)=>s+(acc.monthly[ym]||0),0))}</td>
+      </tr>`;
+    }).join('');
+
+    const totCells = futKeys.map(ym =>
+      `<td class="r fw7">${hd.monthly[ym]>0 ? usd(hd.monthly[ym]) : '<span class="text-muted">—</span>'}</td>`
+    ).join('');
+
+    tblHtml = `
+      <div class="divider"></div>
+      <table>
+        <thead><tr>
+          <th>Cuenta</th><th>ETA Cierre</th>${colHeaders}<th class="r">Total</th>
+        </tr></thead>
+        <tbody>
+          ${rows}
+          <tr class="total-row">
+            <td colspan="2">TOTAL</td>
+            ${totCells}
+            <td class="r fw7" style="color:var(--cyan)">${usd(hd.future_pipe)}</td>
+          </tr>
+        </tbody>
+      </table>`;
+  } else {
+    tblHtml = '<div class="no-data">Sin cuentas con pipe en los próximos meses.</div>';
+  }
+
+  document.getElementById('hunterBody').innerHTML = kpisHtml + chartHtml + tblHtml;
+
+  if (hunterC) { hunterC.destroy(); hunterC = null; }
+  const ctx = document.getElementById('hDetChart').getContext('2d');
+  const barData  = D.month_labels.map((_,i) => hd.monthly[D.month_keys[i]]||0);
+  const planLine = hd.has_plan ? D.month_labels.map((_,i) => hd.plan[D.month_keys[i]]||null) : [];
+
+  const bgs = D.month_labels.map((_,i) =>
+    i < D.future_idx ? 'rgba(139,92,246,.25)' : 'rgba(139,92,246,.75)'
+  );
+
+  const datasets = [{
+    label: 'Pipeline',
+    data: barData,
+    backgroundColor: bgs,
+    borderRadius: 4, order: 1,
+  }];
+  if (hd.has_plan) {
+    datasets.push({
+      label: 'Plan',
+      data: planLine, type: 'line',
+      borderColor: '#f59e0b', backgroundColor: 'transparent',
+      borderDash: [5,5], pointBackgroundColor: '#f59e0b',
+      pointRadius: 4, tension: .3, order: 0,
+    });
+  }
+
+  hunterC = new Chart(ctx, {
+    type: 'bar',
+    data: {labels: D.month_labels, datasets},
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      interaction: {intersect:false, mode:'index'},
+      plugins: {
+        legend: {labels:{color:'#8892a4',font:{size:12},boxWidth:14}},
+        tooltip: {
+          backgroundColor:'#181d2d', borderColor:'#252d45', borderWidth:1,
+          titleColor:'#fff', bodyColor:'#8892a4',
+          callbacks: {label: c => ` ${c.dataset.label}: ${usd(c.parsed.y)}`}
+        }
+      },
+      scales: {
+        x: {grid:{color:'rgba(37,45,69,.7)'}, ticks:{color:'#8892a4'}},
+        y: {grid:{color:'rgba(37,45,69,.7)'},
+            ticks:{color:'#8892a4', callback: v => v>=1e6?`$${v/1e6}M`:v>=1e3?`$${v/1e3}K`:`$${v}`}}
+      }
+    }
+  });
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  buildKpis();
+  buildMonthTable();
+  buildMainChart();
+  populateSelect();
+  renderAllHunters();
+});
+</script>
+</body>
+</html>
