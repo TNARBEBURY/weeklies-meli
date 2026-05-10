@@ -873,7 +873,7 @@ function renderPipelineDash(sid){
   el.style.padding="0";
   el.style.overflow="hidden";
   const iframe=document.createElement("iframe");
-  iframe.src="pipe-dashboard-weekly.html?v=1778449250";
+  iframe.src="pipe-dashboard-weekly.html?t="+Date.now();
   iframe.style.cssText="flex:1;width:100%;min-height:0;border:none;display:block;height:100%";
   iframe.title="Pipeline 2026";
   el.innerHTML="";
