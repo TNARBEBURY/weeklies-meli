@@ -1,0 +1,1073 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Pipeline Dashboard 2026</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0f1117;--card:#181d2d;--card2:#1e2540;--border:#252d45;
+  --text:#e2e8f0;--muted:#8892a4;
+  --blue:#3b82f6;--green:#10b981;--amber:#f59e0b;
+  --red:#ef4444;--purple:#8b5cf6;--cyan:#06b6d4;
+}
+body{background:#FFE600;color:var(--text);font-family:"Segoe UI",-apple-system,sans-serif;font-size:14px;min-height:100vh}
+
+/* Header */
+.hdr{background:linear-gradient(135deg,#1C2B59 0%,#253570 50%,#1C2B59 100%);border-bottom:1px solid var(--border);padding:18px 32px;display:flex;justify-content:space-between;align-items:center}
+.hdr h1{font-size:21px;font-weight:700;color:#FFE600;letter-spacing:.3px}
+.hdr .sub{font-size:11px;color:var(--muted);margin-top:3px;text-transform:uppercase;letter-spacing:1px}
+.hdr-right{text-align:right;font-size:12px;color:#aab8cc;line-height:1.6}
+.tag{display:inline-block;background:#FFE600;color:#1C2B59;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;margin-bottom:5px}
+
+/* Layout */
+.wrap{padding:24px 32px;max-width:1440px;margin:0 auto}
+
+/* KPI Cards */
+.kpi-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-bottom:24px}
+.kpi{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:18px 20px;position:relative;overflow:hidden}
+.kpi::after{content:'';position:absolute;top:0;left:0;right:0;height:3px;border-radius:12px 12px 0 0}
+.kpi.k-plan::after{background:var(--blue)}
+.kpi.k-cur::after{background:var(--cyan)}
+.kpi.k-new::after{background:var(--purple)}
+.kpi.k-total::after{background:var(--green)}
+.kpi.k-gap-pos::after{background:var(--green)}
+.kpi.k-gap-neg::after{background:var(--red)}
+.kpi-lbl{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:8px}
+.kpi-val{font-size:28px;font-weight:700;color:#fff;line-height:1}
+.kpi.k-total .kpi-val{color:var(--green)}
+.kpi.k-gap-pos .kpi-val{color:var(--green)}
+.kpi.k-gap-neg .kpi-val{color:var(--red)}
+.kpi-sub{font-size:12px;color:var(--muted);margin-top:5px}
+
+/* Section */
+.sec{background:var(--card);border:1px solid var(--border);border-radius:12px;margin-bottom:22px;overflow:hidden}
+.sec-hdr{padding:14px 22px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+.sec-title{font-size:15px;font-weight:600;color:#fff}
+.sec-meta{font-size:12px;color:var(--muted)}
+.sec-body{padding:22px}
+.sec-body.no-pad{padding:0}
+
+/* Chart */
+.chart-box{position:relative}
+
+/* Tables */
+table{width:100%;border-collapse:collapse}
+th{font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:#009EE3;padding:9px 14px;border-bottom:2px solid var(--border);font-weight:700;white-space:nowrap}
+th.r{text-align:right}
+td{padding:10px 14px;border-bottom:1px solid rgba(37,45,69,.6);font-size:13px;vertical-align:middle}
+td.r{text-align:right;font-variant-numeric:tabular-nums}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(255,255,255,.02)}
+tr.cur-row td{background:rgba(59,130,246,.07)}
+tr.total-row td{border-top:2px solid var(--border);font-weight:700}
+.cur-col{background:rgba(59,130,246,.06)!important}
+.total-col{background:rgba(255,255,255,.03);border-left:1px solid var(--border)}
+
+/* Badges */
+.badge{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;white-space:nowrap}
+.bg{background:rgba(16,185,129,.15);color:#10b981}
+.br{background:rgba(239,68,68,.15);color:#ef4444}
+.ba{background:rgba(245,158,11,.15);color:#f59e0b}
+.bb{background:rgba(59,130,246,.15);color:#3b82f6}
+.bm{background:rgba(136,146,164,.15);color:#8892a4}
+.bp{background:rgba(139,92,246,.15);color:#a78bfa}
+
+/* Hunter */
+.hunter-sel{background:var(--card2);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:8px 36px 8px 14px;font-size:14px;cursor:pointer;min-width:240px;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%238892a4' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14L2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center}
+.hunter-sel:focus{outline:none;border-color:var(--blue)}
+
+.h-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:12px;margin-bottom:20px}
+.h-card{background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:14px;cursor:pointer;transition:border-color .15s,background .15s}
+.h-card:hover{border-color:var(--blue);background:rgba(59,130,246,.07)}
+.h-name{font-size:13px;font-weight:600;color:#fff;margin-bottom:5px}
+.h-pipe{font-size:20px;font-weight:700;color:var(--cyan)}
+.h-accs{font-size:11px;color:var(--muted);margin-top:3px}
+
+.h-detail-name{font-size:20px;font-weight:700;color:#fff;margin-bottom:16px}
+.h-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:22px}
+.mini-kpi{background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:14px 16px}
+.mini-lbl{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:5px}
+.mini-val{font-size:20px;font-weight:700;color:#fff}
+
+.divider{height:1px;background:var(--border);margin:20px 0}
+.prob-filters{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.prob-pill{padding:5px 14px;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;border:1px solid var(--border);background:var(--card2);color:var(--muted);transition:all .15s}
+.prob-pill:hover{border-color:var(--blue);color:var(--text)}
+.prob-pill.active{color:#fff;border-color:transparent}
+.prob-pill.p-Alta{background:#10b981;border-color:#10b981;color:#fff}
+.prob-pill.p-Media{background:#f59e0b;border-color:#f59e0b;color:#fff}
+.prob-pill.p-Baja{background:#ef4444;border-color:#ef4444;color:#fff}
+.prob-pill.p-all.active{background:var(--blue);border-color:var(--blue);color:#fff}
+.prob-pill.inactive{opacity:.35;filter:grayscale(.6)}
+.h-pill{padding:5px 14px;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;border:1px solid var(--border);background:var(--card2);color:var(--muted);transition:all .15s;white-space:nowrap}
+.h-pill:hover{border-color:var(--blue);color:var(--text)}
+.h-pill.active{color:#fff;border-color:transparent}
+.h-pill.inactive{opacity:.35;filter:grayscale(.4)}
+.h-pill.h-all.active{background:var(--blue);border-color:var(--blue)}
+.filter-bar{display:flex;gap:16px;align-items:center;flex-wrap:wrap;margin-bottom:6px}
+.filter-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px}
+.text-muted{color:var(--muted)}
+.fw7{font-weight:700}
+.no-data{text-align:center;padding:48px;color:var(--muted);font-size:15px}
+
+@media(max-width:1100px){.kpi-grid{grid-template-columns:repeat(3,1fr)}.h-kpis{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:700px){.wrap{padding:14px}.kpi-grid{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div>
+    <h1>Pipeline 2026 — Hunting Instore</h1>
+    <div class="sub">Supervisor: <strong style="color:#e2e8f0">Tomas Narbebury</strong> &nbsp;·&nbsp; Supervisión Comercial</div>
+  </div>
+  <div class="hdr-right">
+    <img src="logo-mp.jpg" alt="MercadoPago"
+         style="height:44px;border-radius:8px;display:block;margin-left:auto;margin-bottom:6px;box-shadow:0 2px 10px rgba(0,0,0,.5)">
+    <div id="updatedTxt"></div>
+  </div>
+</div>
+
+<div class="wrap">
+  <!-- KPIs -->
+  <div class="kpi-grid" id="kpiGrid"></div>
+
+  <!-- Filtro Probabilidad -->
+  <div class="filter-bar" style="margin-bottom:20px">
+    <span class="filter-label">Probabilidad:</span>
+    <div class="prob-filters" id="probFilters"></div>
+  </div>
+
+  <!-- Main Chart -->
+  <div class="sec">
+    <div class="sec-hdr">
+      <span class="sec-title">Evolución TPV vs Plan — 2026</span>
+      <span class="sec-meta">Mensual · USD</span>
+    </div>
+    <div class="sec-body">
+      <div class="chart-box" style="height:320px"><canvas id="mainChart"></canvas></div>
+    </div>
+  </div>
+
+  <!-- Monthly Table -->
+  <div class="sec">
+    <div class="sec-hdr">
+      <span class="sec-title">Detalle Mensual</span>
+    </div>
+    <div class="sec-body no-pad" style="overflow-x:auto">
+      <table id="monthTable" style="font-size:12px;min-width:100%">
+        <thead id="monthThead"></thead>
+        <tbody id="monthTbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Hunter Section -->
+  <div class="sec">
+    <div class="sec-hdr" style="flex-wrap:wrap;gap:10px">
+      <span class="sec-title">Pipeline por Hunter</span>
+      <div class="prob-filters" id="hunterPills" style="flex:1;justify-content:flex-end"></div>
+    </div>
+    <div class="sec-body" id="hunterBody"></div>
+  </div>
+</div>
+
+<script>
+const D = {"updated": "10 May 2026 17:51", "today_ym": "202605", "cur_idx": 4, "cur_label": "May", "month_keys": ["202601", "202602", "202603", "202604", "202605", "202606", "202607", "202608", "202609"], "month_labels": ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep"], "future_idx": 4, "kpi": {"plan": 3100000.0, "plan_fmt": "$3.10M", "current": 1460000.0, "current_fmt": "$1.46M", "new": 180000.0, "new_fmt": "$180K", "total": 1640000.0, "total_fmt": "$1.64M", "gap": -1460000.0, "gap_fmt": "$-1.46M", "pct": 52.9, "cur_label": "May"}, "monthly": [{"ym": "202601", "label": "Ene", "is_cur": false, "plan": 0.0, "current": 0.0, "new": 0.0, "total": 0.0, "gap": 0.0, "pct": 0}, {"ym": "202602", "label": "Feb", "is_cur": false, "plan": 0.0, "current": 0.0, "new": 0.0, "total": 0.0, "gap": 0.0, "pct": 0}, {"ym": "202603", "label": "Mar", "is_cur": false, "plan": 0.0, "current": 0.0, "new": 0.0, "total": 0.0, "gap": 0.0, "pct": 0}, {"ym": "202604", "label": "Abr", "is_cur": false, "plan": 3100000.0, "current": 1453369.0, "new": 1076191.0, "total": 2529560.0, "gap": -570440.0, "pct": 81.6}, {"ym": "202605", "label": "May", "is_cur": true, "plan": 3100000.0, "current": 1460000.0, "new": 180000.0, "total": 1640000.0, "gap": -1460000.0, "pct": 52.9}, {"ym": "202606", "label": "Jun", "is_cur": false, "plan": 3800000.0, "current": 2010000.0, "new": 3140000.0, "total": 5150000.0, "gap": 1350000.0, "pct": 135.5}, {"ym": "202607", "label": "Jul", "is_cur": false, "plan": 4500000.0, "current": 5350000.0, "new": 3735000.0, "total": 9085000.0, "gap": 4585000.0, "pct": 201.9}, {"ym": "202608", "label": "Ago", "is_cur": false, "plan": 5666667.0, "current": 10645000.0, "new": 2650000.0, "total": 13295000.0, "gap": 7628333.0, "pct": 234.6}, {"ym": "202609", "label": "Sep", "is_cur": false, "plan": 6466667.0, "current": 10085000.0, "new": 1070000.0, "total": 11155000.0, "gap": 4688333.0, "pct": 172.5}], "hunters": {"Valentina Burgos": {"name": "Valentina Burgos", "monthly": {"202601": 0.0, "202602": 0.0, "202603": 0.0, "202604": 476250.0, "202605": 680000.0, "202606": 2055000.0, "202607": 2790000.0, "202608": 3240000.0, "202609": 4250000.0}, "monthly_attr": {"202601": 0.0, "202602": 0.0, "202603": 0.0, "202604": 476250.0, "202605": 680000.0, "202606": 2055000.0, "202607": 1990000.0, "202608": 2310000.0, "202609": 1810000.0}, "monthly_new": {"202601": 0.0, "202602": 0.0, "202603": 0.0, "202604": 476250.0, "202605": 80000.0, "202606": 1125000.0, "202607": 270000.0, "202608": 450000.0, "202609": 770000.0}, "monthly_current": {"202601": 0.0, "202602": 0.0, "202603": 0.0, "202604": 0.0, "202605": 600000.0, "202606": 930000.0, "202607": 1720000.0, "202608": 1860000.0, "202609": 1040000.0}, "plan": {"202601": 233333.0, "202602": 466667.0, "202603": 700000.0, "202604": 700000.0, "202605": 700000.0, "202606": 700000.0, "202607": 700000.0, "202608": 700000.0, "202609": 700000.0, "202610": 700000.0, "202611": 700000.0, "202612": 700000.0}, "has_plan": true, "total_pipe": 13491250.0, "future_pipe": 13015000.0, "future_attr": 8845000.0, "future_plan": 3500000.0, "accounts": [{"name": "Farmacias Pacheco", "eta": "202604", "eta_label": "Abr", "monthly": {"202601": 0.0, "202602": 0.0, "202603": 0.0, "202604": 476250.0, "202605": 600000.0, "202606": 800000.0, "202607": 800000.0, "202608": 800000.0, "202609": 800000.0}, "probability": "Alta", "total": 4276250.0}, {"name": "MPR Merch", "eta": "202605", "eta_label": "May", "monthly": {"202601": 0.0, "202602": 0.0, "202603": 0.0, "202604": 0.0, "202605": 80000.0, "202606": 130000.0, "202607": 130000.0, "202608": 130000.0, "202609": 130000.0}, "probability": "Alta", "total": 600000.0}, {"name": "Grupo Divaflo", "eta": "202606", "eta_label": "Jun", "monthly": {"202601": 0.0, "202602": 0.0, "202603": 0.0, "202604": 0.0, "202605": 0.0, "202606": 400000.0, "202607": 650000.0, "202608": 650000.0, "202609": 650000.0}, "probability": "Alta", "total": 2350000.0}, {"name": "Ticketek MLA", "eta": "202606", "eta_label": "Jun", "monthly": {"202601": 0.0, "202602": 0.0, "202603": 0.0, "202604": 0.0, "202605": 0.0, "202606": 600000.0, "202607": 800000.0, "202608": 700000.0, "202609": 700000.0}, "probability": "Alta", "total": 2800000.0}, {"name": "APIO VERDE", "eta": "202606", "eta_label": "Jun", "monthly": {"202601": 0.0, "202602": 0.0, "202603": 0.0, "202604": 0.0, "202605": 0.0, "202606": 125000.0, "202607": 140000.0, "202608": 160000.0, "202609": 160000.0}, "probability": "Media", "total": 585000.0}, {"name": "India Style.", "eta": "202607", "eta_label": "Jul", "monthly": {"202601": 0.0, "202602": 0.0, "202603": 0.0, "202604": 0.0, "202605": 0.0, "202606": 0.0, "202607": 120000.0, "202608": 150000.0, "202609": 150000.0}, "probability": "Baja", "total": 420000.0}, {"name": "La Codeana", "eta": "202607", "eta_label": "Jul", "monthly": {"202601": 0.0, "202602": 0.0, "202603": 0.0, "202604": 0.0, "202605": 0.0, "202606": 0.0, "202607": 150000.0, "202608": 200000.0, "202609": 220000.0}, "probability": "Baja", "total": 570000.0}, {"name": "The Food Truck Store", "eta": "202608", "eta_label": "Ago", "monthly": {"202601": 0.0, "202602": 0.0, "202603": 0.0, "202604": 0.0, "202605": 0.0, "202606": 0.0, "202607": 0.0, "202608": 150000.0, "202609": 170000.0}, "probability": "Baja", "total": 320000.0}, {"name": "Fava Paseo de Compras", "eta": "202608", "eta_label": "Ago", "monthly": {"202601": 0.0, "202602": 0.0, "202603": 0.0, "202604": 0.0, "202605": 0.0, "202606": 0.0, "202607": 0.0, "202608": 300000.0, "202609": 500000.0}, "probability": "Alta", "total": 800000.0}, {"name": "Burgues.", "eta": "202609", "eta_label": "Sep", "monthly": {"202601": 0.0, "202602": 0.0, "202603": 0.0, "202604": 0.0, "202605": 0.0, "202606": 0.0, "202607": 0.0, "202608": 0.0, "202609": 400000.0}, "probability": "Media", "total": 400000.0}, {"name": "Farmacias ABC.", "eta": "202609", "eta_label": "Sep", "monthly": {"202601": 0.0, "202602": 0.0, "202603": 0.0, "202604": 0.0, "202605": 0.0, "202606": 0.0, "202607": 0.0, "202608": 0.0, "202609": 250000.0}, "probability": "Baja", "total": 250000.0}, {"name": "Educando Jugueterias.", "eta": "202609", "eta_label": "Sep", "monthly": {"202601": 0.0, "202602": 0.0, "202603": 0.0, "202604": 0.0, "202605": 0.0, "202606": 0.0, "202607": 0.0, "202608": 0.0, "202609": 120000.0}, "probability": "Baja", "total": 120000.0}]}, "Bautista Gatti": {"name": "Bautista Gatti", "monthly": {"202601": 0.0, "202602": 0.0, "202603": 0.0, "202604": 578349.0, "202605": 880000.0, "202606": 1730000.0, "202607": 3730000.0, "202608": 4680000.0, "202609": 4780000.0}, "monthly_attr": {"202601": 0.0, "202602": 0.0, "202603": 0.0, "202604": 578349.0, "202605": 880000.0, "202606": 1730000.0, "202607": 2950000.0, "202608": 3300000.0, "202609": 1900000.0}, "monthly_new": {"202601": 0.0, "202602": 0.0, "202603": 0.0, "202604": 578349.0, "202605": 100000.0, "202606": 650000.0, "202607": 1250000.0, "202608": 300000.0, "202609": 0.0}, "monthly_current": {"202601": 0.0, "202602": 0.0, "202603": 0.0, "202604": 0.0, "202605": 780000.0, "202606": 1080000.0, "202607": 1700000.0, "202608": 3000000.0, "202609": 1900000.0}, "plan": {"202601": 333333.0, "202602": 666667.0, "202603": 1000000.0, "202604": 1000000.0, "202605": 1000000.0, "202606": 1000000.0, "202607": 1000000.0, "202608": 1000000.0, "202609": 1000000.0, "202610": 1000000.0, "202611": 1000000.0, "202612": 1000000.0}, "has_plan": true, "total_pipe": 16378349.0, "future_pipe": 15800000.0, "future_attr": 10760000.0, "future_plan": 5000000.0, "accounts": [{"name": "Specialized", "eta": "202604", "eta_label": "Abr", "monthly": {"202601": 0.0, "202602": 0.0, "202603": 0.0, "202604": 392162.0, "202605": 600000.0, "202606": 600000.0, "202607": 600000.0, "202608": 600000.0, "202609": 600000.0}, "probability": "Alta", "total": 3392162.0}, {"name": "Supermercado Chen", "eta": "202604", "eta_label": "Abr", "monthly": {"202601": 0.0, "202602": 0.0, "202603": 0.0, "202604": 186187.0, "202605": 180000.0, "202606": 180000.0, "202607": 180000.0, "202608": 180000.0, "202609": 180000.0}, "probability": "Alta", "total": 1086187.0}, {"name": "Grupo Univista", "eta": "202605", "eta_label": "May", "monthly": {"202601": 0.0, "202602": 0.0, "202603": 0.0, "202604": 0.0, "202605": 100000.0, "202606": 300000.0, "202607": 600000.0, "202608": 600000.0, "202609": 600000.0}, "probability": "Alta", "total": 2200000.0}, {"name": "Central de SABORES.", "eta": "202606", "eta_label": "Jun", "monthly": {"202601": 0.0, "202602": 0.0, "202603": 0.0, "202604": 0.0, "202605": 0.0, "202606": 300000.0, "202607": 500000.0, "202608": 900000.0, "202609": 900000.0}, "probability": "Alta", "total": 2600000.0}, {"name": "Didactikids", "eta": "202606", "eta_label": "Jun", "monthly": {"202601": 0.0, "202602": 0.0, "202603": 0.0, "202604": 0.0, "202605": 0.0, "202606": 100000.0, "202607": 250000.0, "202608": 250000.0, "202609": 250000.0}, "probability": "Media", "total": 850000.0}, {"name": "Mi Villano Express", "eta": "202606", "eta_label": "Jun", "monthly": {"202601": 0.0, "202602": 0.0, "202603": 0.0, "202604": 0.0, "202605": 0.0, "202606": 250000.0, "202607": 350000.0, "202608": 350000.0, "202609": 350000.0}, "probability": "Baja", "total": 1300000.0}, {"name": "Bosqueto muebles", "eta": "202607", "eta_label": "Jul", "monthly": {"202601": 0.0, "202602": 0.0, "202603": 0.0, "202604": 0.0, "202605": 0.0, "202606": 0.0, "202607": 100000.0, "202608": 250000.0, "202609": 250000.0}, "probability": "Baja", "total": 600000.0}, {"name": "Brocasoles SRL", "eta": "202607", "eta_label": "Jul", "monthly": {"202601": 0.0, "202602": 0.0, "202603": 0.0, "202604": 0.0, "202605": 0.0, "202606": 0.0, "202607": 250000.0, "202608": 250000.0, "202609": 250000.0}, "probability": "Baja", "total": 750000.0}, {"name": "GRUPO UTOPIA", "eta": "202607", "eta_label": "Jul", "monthly": {"202601": 0.0, "202602": 0.0, "202603": 0.0, "202604": 0.0, "202605": 0.0, "202606": 0.0, "202607": 200000.0, "202608": 200000.0, "202609": 200000.0}, "probability": "Baja", "total": 600000.0}, {"name": "KYO MOTOS SRL.", "eta": "202607", "eta_label": "Jul", "monthly": {"202601": 0.0, "202602": 0.0, "202603": 0.0, "202604": 0.0, "202605": 0.0, "202606": 0.0, "202607": 250000.0, "202608": 250000.0, "202609": 250000.0}, "probability": "Alta", "total": 750000.0}, {"name": "MILANGA Y CO SRL.", "eta": "202607", "eta_label": "Jul", "monthly": {"202601": 0.0, "202602": 0.0, "202603": 0.0, "202604": 0.0, "202605": 0.0, "202606": 0.0, "202607": 150000.0, "202608": 250000.0, "202609": 250000.0}, "probability": "Baja", "total": 650000.0}, {"name": "Optica Battilana", "eta": "202607", "eta_label": "Jul", "monthly": {"202601": 0.0, "202602": 0.0, "202603": 0.0, "202604": 0.0, "202605": 0.0, "202606": 0.0, "202607": 300000.0, "202608": 300000.0, "202609": 300000.0}, "probability": "Baja", "total": 900000.0}, {"name": "Lazaro", "eta": "202608", "eta_label": "Ago", "monthly": {"202601": 0.0, "202602": 0.0, "202603": 0.0, "202604": 0.0, "202605": 0.0, "202606": 0.0, "202607": 0.0, "202608": 300000.0, "202609": 400000.0}, "probability": "Baja", "total": 700000.0}]}, "Florencia Aguirre": {"name": "Florencia Aguirre", "monthly": {"202601": 2990000.0, "202602": 0.0, "202603": 0.0, "202604": 80000.0, "202605": 80000.0, "202606": 410000.0, "202607": 980000.0, "202608": 1680000.0, "202609": 2120000.0}, "monthly_attr": {"202601": 0.0, "202602": 0.0, "202603": 0.0, "202604": 80000.0, "202605": 80000.0, "202606": 330000.0, "202607": 900000.0, "202608": 1600000.0, "202609": 1190000.0}, "monthly_new": {"202601": 0.0, "202602": 0.0, "202603": 0.0, "202604": 0.0, "202605": 0.0, "202606": 330000.0, "202607": 300000.0, "202608": 450000.0, "202609": 0.0}, "monthly_current": {"202601": 0.0, "202602": 0.0, "202603": 0.0, "202604": 80000.0, "202605": 80000.0, "202606": 0.0, "202607": 600000.0, "202608": 1150000.0, "202609": 1190000.0}, "plan": {"202601": 466667.0, "202602": 933333.0, "202603": 1400000.0, "202604": 1400000.0, "202605": 1400000.0, "202606": 1400000.0, "202607": 1400000.0, "202608": 1400000.0, "202609": 1400000.0, "202610": 1400000.0, "202611": 1400000.0, "202612": 1400000.0}, "has_plan": true, "total_pipe": 8340000.0, "future_pipe": 5270000.0, "future_attr": 4100000.0, "future_plan": 7000000.0, "accounts": [{"name": "Mami", "eta": "202603", "eta_label": "Mar", "monthly": {"202601": 0.0, "202602": 0.0, "202603": 0.0, "202604": 80000.0, "202605": 80000.0, "202606": 80000.0, "202607": 80000.0, "202608": 80000.0, "202609": 80000.0}, "probability": "Alta", "total": 480000.0}, {"name": "Buchardo Restaurante", "eta": "202606", "eta_label": "Jun", "monthly": {"202601": 210000.0, "202602": 0.0, "202603": 0.0, "202604": 0.0, "202605": 0.0, "202606": 0.0, "202607": 0.0, "202608": 0.0, "202609": 0.0}, "probability": "Baja", "total": 210000.0}, {"name": "Le Piume", "eta": "202606", "eta_label": "Jun", "monthly": {"202601": 200000.0, "202602": 0.0, "202603": 0.0, "202604": 0.0, "202605": 0.0, "202606": 50000.0, "202607": 150000.0, "202608": 200000.0, "202609": 200000.0}, "probability": "Alta", "total": 800000.0}, {"name": "Ro Medical", "eta": "202606", "eta_label": "Jun", "monthly": {"202601": 300000.0, "202602": 0.0, "202603": 0.0, "202604": 0.0, "202605": 0.0, "202606": 100000.0, "202607": 150000.0, "202608": 200000.0, "202609": 250000.0}, "probability": "Alta", "total": 1000000.0}, {"name": "Venga Madre", "eta": "202606", "eta_label": "Jun", "monthly": {"202601": 200000.0, "202602": 0.0, "202603": 0.0, "202604": 0.0, "202605": 0.0, "202606": 50000.0, "202607": 150000.0, "202608": 170000.0, "202609": 200000.0}, "probability": "Alta", "total": 770000.0}, {"name": "Zueka", "eta": "202606", "eta_label": "Jun", "monthly": {"202601": 220000.0, "202602": 0.0, "202603": 0.0, "202604": 0.0, "202605": 0.0, "202606": 130000.0, "202607": 150000.0, "202608": 170000.0, "202609": 200000.0}, "probability": "Baja", "total": 870000.0}, {"name": "Cinema Devoto", "eta": "202607", "eta_label": "Jul", "monthly": {"202601": 300000.0, "202602": 0.0, "202603": 0.0, "202604": 0.0, "202605": 0.0, "202606": 0.0, "202607": 100000.0, "202608": 150000.0, "202609": 200000.0}, "probability": "Media", "total": 750000.0}, {"name": "Helados Lado Bueno", "eta": "202607", "eta_label": "Jul", "monthly": {"202601": 500000.0, "202602": 0.0, "202603": 0.0, "202604": 0.0, "202605": 0.0, "202606": 0.0, "202607": 200000.0, "202608": 260000.0, "202609": 290000.0}, "probability": "Baja", "total": 1250000.0}, {"name": "Duty Free Iguazu", "eta": "202608", "eta_label": "Ago", "monthly": {"202601": 800000.0, "202602": 0.0, "202603": 0.0, "202604": 0.0, "202605": 0.0, "202606": 0.0, "202607": 0.0, "202608": 300000.0, "202609": 500000.0}, "probability": "Media", "total": 1600000.0}, {"name": "Genda Laboratorio", "eta": "202608", "eta_label": "Ago", "monthly": {"202601": 260000.0, "202602": 0.0, "202603": 0.0, "202604": 0.0, "202605": 0.0, "202606": 0.0, "202607": 0.0, "202608": 150000.0, "202609": 200000.0}, "probability": "Baja", "total": 610000.0}]}, "Tomas Crespi": {"name": "Tomas Crespi", "monthly": {"202601": 0.0, "202602": 0.0, "202603": 0.0, "202604": 0.0, "202605": 0.0, "202606": 890000.0, "202607": 2470000.0, "202608": 4060000.0, "202609": 5090000.0}, "monthly_attr": {"202601": 0.0, "202602": 0.0, "202603": 0.0, "202604": 0.0, "202605": 0.0, "202606": 890000.0, "202607": 2470000.0, "202608": 4060000.0, "202609": 3630000.0}, "monthly_new": {"202601": 0.0, "202602": 0.0, "202603": 0.0, "202604": 0.0, "202605": 0.0, "202606": 890000.0, "202607": 1340000.0, "202608": 400000.0, "202609": 0.0}, "monthly_current": {"202601": 0.0, "202602": 0.0, "202603": 0.0, "202604": 0.0, "202605": 0.0, "202606": 0.0, "202607": 1130000.0, "202608": 3660000.0, "202609": 3630000.0}, "plan": {"202601": 0.0, "202602": 0.0, "202603": 0.0, "202604": 0.0, "202605": 0.0, "202606": 466667.0, "202607": 933333.0, "202608": 1400000.0, "202609": 1400000.0, "202610": 1400000.0, "202611": 1400000.0, "202612": 1400000.0}, "has_plan": true, "total_pipe": 12510000.0, "future_pipe": 12510000.0, "future_attr": 11050000.0, "future_plan": 4200000.0, "accounts": [{"name": "Jet BA", "eta": "202606", "eta_label": "Jun", "monthly": {"202601": 0.0, "202602": 0.0, "202603": 0.0, "202604": 0.0, "202605": 0.0, "202606": 130000.0, "202607": 180000.0, "202608": 180000.0, "202609": 180000.0}, "probability": "Media", "total": 670000.0}, {"name": "Chocorisimo", "eta": "202606", "eta_label": "Jun", "monthly": {"202601": 0.0, "202602": 0.0, "202603": 0.0, "202604": 0.0, "202605": 0.0, "202606": 500000.0, "202607": 600000.0, "202608": 780000.0, "202609": 780000.0}, "probability": "Alta", "total": 2660000.0}, {"name": "Farmacias Grupo Sarti", "eta": "202606", "eta_label": "Jun", "monthly": {"202601": 0.0, "202602": 0.0, "202603": 0.0, "202604": 0.0, "202605": 0.0, "202606": 140000.0, "202607": 200000.0, "202608": 200000.0, "202609": 200000.0}, "probability": "Media", "total": 740000.0}, {"name": "MueblesYSillones.com", "eta": "202606", "eta_label": "Jun", "monthly": {"202601": 0.0, "202602": 0.0, "202603": 0.0, "202604": 0.0, "202605": 0.0, "202606": 120000.0, "202607": 150000.0, "202608": 250000.0, "202609": 300000.0}, "probability": "Alta", "total": 820000.0}, {"name": "Brozziano", "eta": "202607", "eta_label": "Jul", "monthly": {"202601": 0.0, "202602": 0.0, "202603": 0.0, "202604": 0.0, "202605": 0.0, "202606": 0.0, "202607": 120000.0, "202608": 200000.0, "202609": 300000.0}, "probability": "Baja", "total": 620000.0}, {"name": "CAS Hormigones y Materiales", "eta": "202607", "eta_label": "Jul", "monthly": {"202601": 0.0, "202602": 0.0, "202603": 0.0, "202604": 0.0, "202605": 0.0, "202606": 0.0, "202607": 70000.0, "202608": 100000.0, "202609": 125000.0}, "probability": "Baja", "total": 295000.0}, {"name": "Cooperativa Agropecuaria Necochea", "eta": "202607", "eta_label": "Jul", "monthly": {"202601": 0.0, "202602": 0.0, "202603": 0.0, "202604": 0.0, "202605": 0.0, "202606": 0.0, "202607": 70000.0, "202608": 140000.0, "202609": 200000.0}, "probability": "Baja", "total": 410000.0}, {"name": "Farmacia Lopez", "eta": "202607", "eta_label": "Jul", "monthly": {"202601": 0.0, "202602": 0.0, "202603": 0.0, "202604": 0.0, "202605": 0.0, "202606": 0.0, "202607": 140000.0, "202608": 230000.0, "202609": 300000.0}, "probability": "Baja", "total": 670000.0}, {"name": "Blest", "eta": "202607", "eta_label": "Jul", "monthly": {"202601": 0.0, "202602": 0.0, "202603": 0.0, "202604": 0.0, "202605": 0.0, "202606": 0.0, "202607": 180000.0, "202608": 280000.0, "202609": 280000.0}, "probability": "Media", "total": 740000.0}, {"name": "Iglu", "eta": "202607", "eta_label": "Jul", "monthly": {"202601": 0.0, "202602": 0.0, "202603": 0.0, "202604": 0.0, "202605": 0.0, "202606": 0.0, "202607": 140000.0, "202608": 250000.0, "202609": 350000.0}, "probability": "Baja", "total": 740000.0}, {"name": "LABIRRABAR_OFICIAL", "eta": "202607", "eta_label": "Jul", "monthly": {"202601": 0.0, "202602": 0.0, "202603": 0.0, "202604": 0.0, "202605": 0.0, "202606": 0.0, "202607": 100000.0, "202608": 300000.0, "202609": 500000.0}, "probability": "Baja", "total": 900000.0}, {"name": "Parrillas Burger", "eta": "202607", "eta_label": "Jul", "monthly": {"202601": 0.0, "202602": 0.0, "202603": 0.0, "202604": 0.0, "202605": 0.0, "202606": 0.0, "202607": 100000.0, "202608": 150000.0, "202609": 200000.0}, "probability": "Baja", "total": 450000.0}, {"name": "Pizzeria La Americana", "eta": "202607", "eta_label": "Jul", "monthly": {"202601": 0.0, "202602": 0.0, "202603": 0.0, "202604": 0.0, "202605": 0.0, "202606": 0.0, "202607": 200000.0, "202608": 300000.0, "202609": 500000.0}, "probability": "Baja", "total": 1000000.0}, {"name": "Pizzeria los maestros", "eta": "202607", "eta_label": "Jul", "monthly": {"202601": 0.0, "202602": 0.0, "202603": 0.0, "202604": 0.0, "202605": 0.0, "202606": 0.0, "202607": 60000.0, "202608": 100000.0, "202609": 125000.0}, "probability": "Baja", "total": 285000.0}, {"name": "Sacoa", "eta": "202607", "eta_label": "Jul", "monthly": {"202601": 0.0, "202602": 0.0, "202603": 0.0, "202604": 0.0, "202605": 0.0, "202606": 0.0, "202607": 160000.0, "202608": 200000.0, "202609": 250000.0}, "probability": "Alta", "total": 610000.0}, {"name": "Dandy Restaurant & Grill.", "eta": "202608", "eta_label": "Ago", "monthly": {"202601": 0.0, "202602": 0.0, "202603": 0.0, "202604": 0.0, "202605": 0.0, "202606": 0.0, "202607": 0.0, "202608": 400000.0, "202609": 500000.0}, "probability": "Baja", "total": 900000.0}]}, "Santiago Balestrieri": {"name": "Santiago Balestrieri", "monthly": {"202601": 0.0, "202602": 0.0, "202603": 0.0, "202604": 0.0, "202605": 0.0, "202606": 145000.0, "202607": 775000.0, "202608": 2025000.0, "202609": 2860000.0}, "monthly_attr": {"202601": 0.0, "202602": 0.0, "202603": 0.0, "202604": 0.0, "202605": 0.0, "202606": 145000.0, "202607": 775000.0, "202608": 2025000.0, "202609": 2625000.0}, "monthly_new": {"202601": 0.0, "202602": 0.0, "202603": 0.0, "202604": 0.0, "202605": 0.0, "202606": 145000.0, "202607": 575000.0, "202608": 1050000.0, "202609": 300000.0}, "monthly_current": {"202601": 0.0, "202602": 0.0, "202603": 0.0, "202604": 0.0, "202605": 0.0, "202606": 0.0, "202607": 200000.0, "202608": 975000.0, "202609": 2325000.0}, "plan": {"202601": 0.0, "202602": 0.0, "202603": 0.0, "202604": 0.0, "202605": 0.0, "202606": 233333.0, "202607": 466667.0, "202608": 700000.0, "202609": 700000.0, "202610": 700000.0, "202611": 700000.0, "202612": 700000.0}, "has_plan": true, "total_pipe": 5805000.0, "future_pipe": 5805000.0, "future_attr": 5570000.0, "future_plan": 2100000.0, "accounts": [{"name": "ABSweaters", "eta": "202606", "eta_label": "Jun", "monthly": {"202601": 0.0, "202602": 0.0, "202603": 0.0, "202604": 0.0, "202605": 0.0, "202606": 70000.0, "202607": 100000.0, "202608": 110000.0, "202609": 110000.0}, "probability": "Media", "total": 390000.0}, {"name": "Avi Cuatro", "eta": "202606", "eta_label": "Jun", "monthly": {"202601": 0.0, "202602": 0.0, "202603": 0.0, "202604": 0.0, "202605": 0.0, "202606": 75000.0, "202607": 100000.0, "202608": 125000.0, "202609": 125000.0}, "probability": "Media", "total": 425000.0}, {"name": "Carniceria La Merced", "eta": "202607", "eta_label": "Jul", "monthly": {"202601": 0.0, "202602": 0.0, "202603": 0.0, "202604": 0.0, "202605": 0.0, "202606": 0.0, "202607": 75000.0, "202608": 100000.0, "202609": 120000.0}, "probability": "Media", "total": 295000.0}, {"name": "Cárnicos Del Sur", "eta": "202607", "eta_label": "Jul", "monthly": {"202601": 0.0, "202602": 0.0, "202603": 0.0, "202604": 0.0, "202605": 0.0, "202606": 0.0, "202607": 120000.0, "202608": 150000.0, "202609": 180000.0}, "probability": "Baja", "total": 450000.0}, {"name": "Cheverry", "eta": "202607", "eta_label": "Jul", "monthly": {"202601": 0.0, "202602": 0.0, "202603": 0.0, "202604": 0.0, "202605": 0.0, "202606": 0.0, "202607": 80000.0, "202608": 100000.0, "202609": 100000.0}, "probability": "Media", "total": 280000.0}, {"name": "COPY RENT", "eta": "202607", "eta_label": "Jul", "monthly": {"202601": 0.0, "202602": 0.0, "202603": 0.0, "202604": 0.0, "202605": 0.0, "202606": 0.0, "202607": 80000.0, "202608": 110000.0, "202609": 125000.0}, "probability": "Media", "total": 315000.0}, {"name": "Heladeria Berezia", "eta": "202607", "eta_label": "Jul", "monthly": {"202601": 0.0, "202602": 0.0, "202603": 0.0, "202604": 0.0, "202605": 0.0, "202606": 0.0, "202607": 70000.0, "202608": 80000.0, "202609": 100000.0}, "probability": "Baja", "total": 250000.0}, {"name": "Municipalidad Chivilcoy", "eta": "202607", "eta_label": "Jul", "monthly": {"202601": 0.0, "202602": 0.0, "202603": 0.0, "202604": 0.0, "202605": 0.0, "202606": 0.0, "202607": 150000.0, "202608": 200000.0, "202609": 250000.0}, "probability": "Alta", "total": 600000.0}, {"name": "El Condor Confiteria", "eta": "202608", "eta_label": "Ago", "monthly": {"202601": 0.0, "202602": 0.0, "202603": 0.0, "202604": 0.0, "202605": 0.0, "202606": 0.0, "202607": 0.0, "202608": 70000.0, "202609": 100000.0}, "probability": "Baja", "total": 170000.0}, {"name": "El pollo Ricardo y la Mojarrita", "eta": "202608", "eta_label": "Ago", "monthly": {"202601": 0.0, "202602": 0.0, "202603": 0.0, "202604": 0.0, "202605": 0.0, "202606": 0.0, "202607": 0.0, "202608": 80000.0, "202609": 100000.0}, "probability": "Baja", "total": 180000.0}, {"name": "Frigorifico Fantuz SA", "eta": "202608", "eta_label": "Ago", "monthly": {"202601": 0.0, "202602": 0.0, "202603": 0.0, "202604": 0.0, "202605": 0.0, "202606": 0.0, "202607": 0.0, "202608": 100000.0, "202609": 100000.0}, "probability": "Baja", "total": 200000.0}, {"name": "Le Panem.", "eta": "202608", "eta_label": "Ago", "monthly": {"202601": 0.0, "202602": 0.0, "202603": 0.0, "202604": 0.0, "202605": 0.0, "202606": 0.0, "202607": 0.0, "202608": 100000.0, "202609": 150000.0}, "probability": "Media", "total": 250000.0}, {"name": "PUNTOFARMA", "eta": "202608", "eta_label": "Ago", "monthly": {"202601": 0.0, "202602": 0.0, "202603": 0.0, "202604": 0.0, "202605": 0.0, "202606": 0.0, "202607": 0.0, "202608": 700000.0, "202609": 1000000.0}, "probability": "Baja", "total": 1700000.0}, {"name": "Elibian perfumerias", "eta": "202609", "eta_label": "Sep", "monthly": {"202601": 0.0, "202602": 0.0, "202603": 0.0, "202604": 0.0, "202605": 0.0, "202606": 0.0, "202607": 0.0, "202608": 0.0, "202609": 100000.0}, "probability": "Baja", "total": 100000.0}, {"name": "Animalia", "eta": "202609", "eta_label": "Sep", "monthly": {"202601": 0.0, "202602": 0.0, "202603": 0.0, "202604": 0.0, "202605": 0.0, "202606": 0.0, "202607": 0.0, "202608": 0.0, "202609": 80000.0}, "probability": "Baja", "total": 80000.0}, {"name": "Class Life", "eta": "202609", "eta_label": "Sep", "monthly": {"202601": 0.0, "202602": 0.0, "202603": 0.0, "202604": 0.0, "202605": 0.0, "202606": 0.0, "202607": 0.0, "202608": 0.0, "202609": 120000.0}, "probability": "Media", "total": 120000.0}]}}, "hunter_list": ["Bautista Gatti", "Florencia Aguirre", "Santiago Balestrieri", "Tomas Crespi", "Valentina Burgos"], "prob_list": ["Alta", "Baja", "Media"]};
+
+// ── Helpers ──────────────────────────────────────────────────────────────────
+function usd(n, s=false) {
+  if (!n || n === 0) return '$0';
+  if (s && Math.abs(n) >= 1e6) return `$${(n/1e6).toFixed(2)}M`;
+  if (s && Math.abs(n) >= 1e3) return `$${Math.round(n/1e3)}K`;
+  return '$' + Math.round(n).toLocaleString('es-AR');
+}
+function pct(n) { return (n >= 0 ? '+' : '') + n.toFixed(1) + '%'; }
+
+function gapBadge(g, p) {
+  if (g > 0)      return `<span class="badge bg">${usd(g,true)}</span>`;
+  if (p >= 90)    return `<span class="badge ba">${usd(g,true)}</span>`;
+  return `<span class="badge br">${usd(g,true)}</span>`;
+}
+function pctBadge(p) {
+  const delta = p - 100;
+  const c = delta >= 0 ? 'bg' : delta >= -15 ? 'ba' : 'br';
+  return `<span class="badge ${c}">${delta >= 0 ? '+' : ''}${delta.toFixed(1)}%</span>`;
+}
+function dash(n) { return n > 0 ? usd(n) : '<span class="text-muted">—</span>'; }
+
+// ── Header ────────────────────────────────────────────────────────────────────
+document.getElementById('updatedTxt').textContent = 'Actualizado: ' + D.updated;
+
+// ── KPI Cards ─────────────────────────────────────────────────────────────────
+function buildKpis() {
+  const k = D.kpi;
+  const gapCls = k.gap >= 0 ? 'k-gap-pos' : 'k-gap-neg';
+  document.getElementById('kpiGrid').innerHTML = `
+    <div class="kpi k-plan">
+      <div class="kpi-lbl">Plan ${k.cur_label}</div>
+      <div class="kpi-val">${k.plan_fmt}</div>
+    </div>
+    <div class="kpi k-cur">
+      <div class="kpi-lbl">TPV Current</div>
+      <div class="kpi-val">${k.current_fmt}</div>
+    </div>
+    <div class="kpi k-new">
+      <div class="kpi-lbl">TPV New</div>
+      <div class="kpi-val">${k.new_fmt}</div>
+    </div>
+    <div class="kpi k-total">
+      <div class="kpi-lbl">Total TPV</div>
+      <div class="kpi-val">${k.total_fmt}</div>
+      <div class="kpi-sub">${k.pct.toFixed(1)}% vs Plan</div>
+    </div>
+    <div class="kpi ${gapCls}">
+      <div class="kpi-lbl">Gap vs Plan</div>
+      <div class="kpi-val">${k.gap_fmt}</div>
+    </div>`;
+}
+
+// ── Monthly Table (transpuesta: meses = columnas, métricas = filas) ───────────
+function buildMonthTable() {
+  const thead = document.getElementById('monthThead');
+  const ms = D.monthly.filter(r => r.plan > 0 || r.current > 0 || r.new > 0);
+
+  // Si hay filtro de prob activo, recalcular TPV atribuido (New+Current) desde cuentas
+  let tpvOverride = null, attrNewTeam = null, attrCurTeam = null;
+  if (filterProb) {
+    const fa = allAccounts(filterProb);
+    const breakdown = monthlyAttrFromAccounts(fa);
+    attrNewTeam = breakdown.new;
+    attrCurTeam = breakdown.cur;
+    tpvOverride = {};
+    D.month_keys.forEach(ym => tpvOverride[ym] = (attrNewTeam[ym]||0)+(attrCurTeam[ym]||0));
+  }
+  thead.innerHTML = `<tr>
+    <th style="min-width:110px"></th>
+    ${ms.map(r=>`<th class="r ${r.is_cur?'cur-col':''}">${r.label}${r.is_cur?' <span class="badge bb" style="font-size:10px">Hoy</span>':''}</th>`).join('')}
+    <th class="r total-col">TOTAL</th>
+  </tr>`;
+  const tbody = document.getElementById('monthTbody');
+
+  // Totales (solo meses con plan)
+  const wp = ms.filter(r => r.plan > 0);
+  const tp = wp.reduce((s,r)=>s+r.plan,0);
+  // Para meses ya cerrados (pasados) siempre usa el real, sin importar el filtro
+  const tpvCell = r => tpvOverride && r.ym >= D.today_ym ? (tpvOverride[r.ym]||0) : r.total;
+  const tc = tpvOverride ? 0 : wp.reduce((s,r)=>s+r.current,0);
+  const tn = tpvOverride ? 0 : wp.reduce((s,r)=>s+r.new,0);
+  const tt = wp.reduce((s,r)=>s+tpvCell(r),0);
+  const tg = tt-tp;
+  const tpct = tp>0?tt/tp*100:0;
+
+  function cells(fn) {
+    return ms.map((r,i) => `<td class="r ${r.is_cur?'cur-col':''}">${fn(r,i)}</td>`).join('') +
+           `<td class="r total-col fw7">${fn(null,-1)}</td>`;
+  }
+
+  tbody.innerHTML = `
+    <tr>
+      <td class="fw7">Plan</td>
+      ${ms.map(r=>`<td class="r ${r.is_cur?'cur-col':''}">${r.plan>0?usd(r.plan):'<span class="text-muted">—</span>'}</td>`).join('')}
+      <td class="r total-col fw7">${usd(tp)}</td>
+    </tr>
+    ${tpvOverride ? (() => {
+      const tnF = ms.reduce((s,r)=>s+(r.ym>=D.today_ym?(attrNewTeam[r.ym]||0):r.new),0);
+      const tcF = ms.reduce((s,r)=>s+(r.ym>=D.today_ym?(attrCurTeam[r.ym]||0):r.current),0);
+      return `
+    <tr>
+      <td class="fw7" style="color:#a78bfa">TPV New (${filterProb})</td>
+      ${ms.map(r=>`<td class="r ${r.is_cur?'cur-col':''}">${(r.ym>=D.today_ym?(attrNewTeam[r.ym]||0):r.new)>0?usd(r.ym>=D.today_ym?(attrNewTeam[r.ym]||0):r.new):'<span class="text-muted">—</span>'}</td>`).join('')}
+      <td class="r total-col">${tnF>0?usd(tnF):'<span class="text-muted">—</span>'}</td>
+    </tr>
+    <tr>
+      <td class="fw7" style="color:var(--cyan)">TPV Current (${filterProb})</td>
+      ${ms.map(r=>`<td class="r ${r.is_cur?'cur-col':''}">${(r.ym>=D.today_ym?(attrCurTeam[r.ym]||0):r.current)>0?usd(r.ym>=D.today_ym?(attrCurTeam[r.ym]||0):r.current):'<span class="text-muted">—</span>'}</td>`).join('')}
+      <td class="r total-col">${tcF>0?usd(tcF):'<span class="text-muted">—</span>'}</td>
+    </tr>
+    <tr class="total-row">
+      <td class="fw7" style="color:var(--green)">Total TPV (${filterProb})</td>
+      ${ms.map(r=>`<td class="r fw7 ${r.is_cur?'cur-col':''}" style="color:var(--green)">${tpvCell(r)>0?usd(tpvCell(r)):'<span class="text-muted">—</span>'}</td>`).join('')}
+      <td class="r total-col fw7" style="color:var(--green)">${usd(tt)}</td>
+    </tr>`;
+    })() : `
+    <tr>
+      <td class="fw7">TPV Current</td>
+      ${ms.map(r=>`<td class="r ${r.is_cur?'cur-col':''}">${dash(r.current)}</td>`).join('')}
+      <td class="r total-col">${tc>0?usd(tc):'<span class="text-muted">—</span>'}</td>
+    </tr>
+    <tr>
+      <td class="fw7">TPV New</td>
+      ${ms.map(r=>`<td class="r ${r.is_cur?'cur-col':''}">${dash(r.new)}</td>`).join('')}
+      <td class="r total-col">${tn>0?usd(tn):'<span class="text-muted">—</span>'}</td>
+    </tr>
+    <tr class="total-row">
+      <td class="fw7">Total TPV</td>
+      ${ms.map(r=>`<td class="r fw7 ${r.is_cur?'cur-col':''}" style="color:var(--green)">${dash(r.total)}</td>`).join('')}
+      <td class="r total-col fw7" style="color:var(--green)">${tt>0?usd(tt):'<span class="text-muted">—</span>'}</td>
+    </tr>`}
+    <tr>
+      <td class="fw7">Gap</td>
+      ${ms.map(r=>`<td class="r ${r.is_cur?'cur-col':''}">${r.plan>0?gapBadge(r.gap,r.pct):'<span class="text-muted">—</span>'}</td>`).join('')}
+      <td class="r total-col">${gapBadge(tg,tpct)}</td>
+    </tr>
+    <tr>
+      <td class="fw7">% vs Plan</td>
+      ${ms.map(r=>`<td class="r ${r.is_cur?'cur-col':''}">${r.plan>0?pctBadge(r.pct):'<span class="text-muted">—</span>'}</td>`).join('')}
+      <td class="r total-col">${pctBadge(tpct)}</td>
+    </tr>`;
+}
+
+// ── Main Chart ────────────────────────────────────────────────────────────────
+let mainC = null;
+function buildMainChart() {
+  if (mainC) { mainC.destroy(); mainC = null; }
+  const ctx = document.getElementById('mainChart').getContext('2d');
+  const ms    = D.monthly.filter(r => r.plan > 0 || r.current > 0 || r.new > 0);
+  const plans = ms.map(r => r.plan);
+  const tpvOvr = filterProb ? monthlyFromAccounts(allAccounts(filterProb)) : null;
+  const totals = ms.map(r => tpvOvr ? (tpvOvr[r.ym]||0) : r.total);
+  const pcts   = ms.map(r => r.plan > 0 ? (totals[ms.indexOf(r)] / r.plan * 100) : null);
+  const ci     = ms.findIndex(r => r.is_cur);
+
+  mainC = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: ms.map(r => r.label),
+      datasets: [
+        {
+          label: 'Plan',
+          data: plans,
+          backgroundColor: ms.map((_,i) => i===ci ? 'rgba(59,130,246,.9)' : 'rgba(59,130,246,.3)'),
+          borderRadius: 4, order: 2,
+        },
+        {
+          label: 'Total TPV',
+          data: totals,
+          backgroundColor: ms.map((_,i) => i===ci ? 'rgba(16,185,129,.9)' : 'rgba(16,185,129,.3)'),
+          borderRadius: 4, order: 1,
+        },
+        {
+          label: '% vs Plan',
+          data: pcts, type: 'line', yAxisID: 'y2',
+          borderColor: '#f59e0b', backgroundColor: 'rgba(245,158,11,.08)',
+          pointBackgroundColor: pcts.map(p => p === null ? 'transparent' : p >= 100 ? '#10b981' : p >= 85 ? '#f59e0b' : '#ef4444'),
+          pointRadius: 5, tension: .3, spanGaps: false, order: 0,
+        }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      interaction: {intersect:false, mode:'index'},
+      plugins: {
+        legend: {labels:{color:'#8892a4',font:{size:12},boxWidth:14}},
+        tooltip: {
+          backgroundColor:'#181d2d', borderColor:'#252d45', borderWidth:1,
+          titleColor:'#fff', bodyColor:'#8892a4',
+          callbacks: {
+            label(c) {
+              if (c.dataset.label === '% vs Plan') return c.parsed.y != null ? ` ${c.parsed.y.toFixed(1)}%` : '';
+              return ` ${c.dataset.label}: ${usd(c.parsed.y)}`;
+            }
+          }
+        }
+      },
+      scales: {
+        x: {grid:{color:'rgba(37,45,69,.7)'}, ticks:{color:'#8892a4'}},
+        y: {
+          grid:{color:'rgba(37,45,69,.7)'},
+          ticks:{color:'#8892a4', callback: v => v>=1e6?`$${v/1e6}M`:v>=1e3?`$${v/1e3}K`:`$${v}`}
+        },
+        y2: {
+          position:'right', grid:{drawOnChartArea:false},
+          ticks:{color:'#f59e0b', callback: v => v+'%'}
+        }
+      }
+    }
+  });
+}
+
+// ── Hunter Pills multi-selección ──────────────────────────────────────────────
+let selectedHunters = new Set();
+const H_COLORS = ['#3b82f6','#10b981','#8b5cf6','#f59e0b','#06b6d4','#ef4444','#ec4899','#84cc16'];
+
+function buildHunterPills() {
+  const container = document.getElementById('hunterPills');
+  container.innerHTML = [
+    `<span class="h-pill h-all active" data-h="" onclick="toggleHunter('')">Todos</span>`,
+    ...D.hunter_list.map((h,i) =>
+      `<span class="h-pill" data-h="${h}" style="--hc:${H_COLORS[i%H_COLORS.length]}"
+        onclick="toggleHunter('${h}')">${h.split(' ')[0]}</span>`
+    )
+  ].join('');
+}
+
+function toggleHunter(name) {
+  if (!name) {
+    selectedHunters.clear();
+  } else {
+    if (selectedHunters.has(name)) selectedHunters.delete(name);
+    else selectedHunters.add(name);
+  }
+  _updateHunterPills();
+  renderSelected();
+}
+
+function _updateHunterPills() {
+  const none = selectedHunters.size === 0;
+  document.querySelectorAll('.h-pill').forEach(el => {
+    const h = el.dataset.h;
+    const isAll = !h;
+    const isActive = isAll ? none : selectedHunters.has(h);
+    if (isActive) {
+      const color = el.style.getPropertyValue('--hc') || 'var(--blue)';
+      el.className = `h-pill${isAll?' h-all':''} active`;
+      el.style.background = color;
+      el.style.borderColor = color;
+    } else {
+      el.className = `h-pill${isAll?' h-all':''}${!none?' inactive':''}`;
+      el.style.background = '';
+      el.style.borderColor = '';
+    }
+  });
+}
+
+function renderSelected() {
+  const names = selectedHunters.size > 0 ? [...selectedHunters] : null;
+  if (!names || names.length === 0) renderAllHunters();
+  else if (names.length === 1)       renderHunter(names[0]);
+  else                                renderMultiHunter(names);
+}
+
+function populateSelect() {} // kept for compat
+
+// Calcula New+Current atribuido por hunter respetando filtro de prob
+function getHunterAttr(hname, prob) {
+  const accs = D.hunters[hname].accounts.filter(a =>
+    !prob || (a.eta && a.eta < D.today_ym) || a.probability === prob
+  );
+  const newM = {}, curM = {};
+  D.month_keys.forEach(ym => { newM[ym]=0; curM[ym]=0; });
+  accs.forEach(acc => {
+    const eta = acc.eta; if (!eta) return;
+    if (newM[eta]!==undefined) newM[eta] += acc.monthly[eta]||0;
+    [1,2].forEach(n => { const d=addMos(eta,n); if(curM[d]!==undefined) curM[d]+=acc.monthly[d]||0; });
+  });
+  const total = {};
+  D.month_keys.forEach(ym => total[ym] = (newM[ym]||0)+(curM[ym]||0));
+  return total;
+}
+
+// ── Hunter: Multi-selección ───────────────────────────────────────────────────
+function renderMultiHunter(names) {
+  // Reutiliza renderAllHunters pero filtrando solo los hunters seleccionados
+  const body = document.getElementById('hunterBody');
+  const futKeys = D.month_keys.slice(D.future_idx);
+  const futLbls = D.month_labels.slice(D.future_idx);
+
+  const cards = names.map((h,i) => {
+    const hd = D.hunters[h];
+    const attr = getHunterAttr(h, filterProb);
+    const futAttr = futKeys.reduce((s,ym) => s+(attr[ym]||0), 0);
+    const visibleAccs = hd.accounts.filter(a =>
+      (!filterProb || (a.eta && a.eta < D.today_ym) || a.probability===filterProb) && haseFutureContrib(a)
+    ).length;
+    const color = H_COLORS[D.hunter_list.indexOf(h) % H_COLORS.length];
+    return `<div class="h-card" onclick="toggleHunter('${h}')" style="border-color:${color}44">
+      <div class="h-name" style="color:${color}">${h}</div>
+      <div class="h-pipe">${usd(futAttr,true)}</div>
+      <div class="h-accs">${visibleAccs} cuentas · New+Current</div>
+    </div>`;
+  }).join('');
+
+  // Tabla de cuentas combinada
+  const allAccs = [];
+  names.forEach(h => {
+    D.hunters[h].accounts.forEach(acc => {
+      if (filterProb && !(acc.eta && acc.eta < D.today_ym) && acc.probability !== filterProb) return;
+      if (!haseFutureContrib(acc)) return;
+      const futTotal = futKeys.reduce((s,ym)=>s+(acc.monthly[ym]||0),0);
+      if (futTotal > 0) allAccs.push({...acc, hunter: h, futTotal});
+    });
+  });
+  allAccs.sort((a,b) => (a.eta||'999999').localeCompare(b.eta||'999999') || a.hunter.localeCompare(b.hunter));
+
+  const colH = futLbls.map(l=>`<th class="r">${l}</th>`).join('');
+  const rows = allAccs.map(acc => {
+    const cells = futKeys.map(ym => {
+      const v = acc.monthly[ym]||0, isEta = acc.eta===ym;
+      return `<td class="r">${v>0?`<span ${isEta?'style="color:#a78bfa;font-weight:700"':''}>${usd(v)}</span>`:'<span class="text-muted">—</span>'}</td>`;
+    }).join('');
+    const color = H_COLORS[D.hunter_list.indexOf(acc.hunter) % H_COLORS.length];
+    return `<tr>
+      <td><span class="badge bb" style="background:${color}33;color:${color};font-size:11px">${acc.hunter.split(' ')[0]}</span></td>
+      <td><strong>${acc.name}</strong></td>
+      <td>${acc.eta?`<span class="badge bp">${acc.eta_label||acc.eta}</span>`:'<span class="text-muted">—</span>'}</td>
+      <td>${acc.probability?`<span class="badge ${acc.probability==='Alta'?'bg':acc.probability==='Media'?'ba':'br'}">${acc.probability}</span>`:'<span class="text-muted">—</span>'}</td>
+      ${cells}
+      <td class="r fw7" style="color:var(--cyan)">${usd(acc.futTotal)}</td>
+    </tr>`;
+  }).join('');
+
+  const totByMonth = {};
+  futKeys.forEach(ym => { totByMonth[ym]=allAccs.reduce((s,a)=>s+(a.monthly[ym]||0),0); });
+  const grand = allAccs.reduce((s,a)=>s+a.futTotal,0);
+  const totCells = futKeys.map(ym=>`<td class="r fw7">${totByMonth[ym]>0?usd(totByMonth[ym]):'<span class="text-muted">—</span>'}</td>`).join('');
+
+  // Plan y TPV combinados para la tabla y el chart
+  const chartMonths = D.monthly.filter((_,i) => i >= D.future_idx);
+  const hunterAttrMap = {};
+  names.forEach(h => { hunterAttrMap[h] = getHunterAttr(h, filterProb); });
+
+  // New y Current por separado para cada hunter
+  const hunterNewMap = {}, hunterCurMap = {};
+  names.forEach(h => {
+    const accs = D.hunters[h].accounts.filter(a =>
+      !filterProb || (a.eta && a.eta < D.today_ym) || a.probability === filterProb
+    );
+    const nM={}, cM={};
+    D.month_keys.forEach(ym=>{nM[ym]=0;cM[ym]=0;});
+    accs.forEach(acc=>{
+      const eta=acc.eta; if(!eta) return;
+      if(nM[eta]!==undefined) nM[eta]+=acc.monthly[eta]||0;
+      [1,2].forEach(n=>{const d=addMos(eta,n);if(cM[d]!==undefined)cM[d]+=acc.monthly[d]||0;});
+    });
+    hunterNewMap[h]=nM; hunterCurMap[h]=cM;
+  });
+  const combinedNew  = ym => names.reduce((s,h)=>s+(hunterNewMap[h][ym]||0),0);
+  const combinedCur  = ym => names.reduce((s,h)=>s+(hunterCurMap[h][ym]||0),0);
+  const combinedAttr = ym => combinedNew(ym) + combinedCur(ym);
+  const combinedPlan = ym => names.reduce((s,h) => s+(D.hunters[h].plan[ym]||0), 0);
+  const hasPlan = names.some(h => D.hunters[h].has_plan);
+
+  // KPIs
+  const futAttrTotal = futKeys.reduce((s,ym) => s+combinedAttr(ym), 0);
+  const futPlanTotal = hasPlan ? futKeys.reduce((s,ym) => s+combinedPlan(ym), 0) : 0;
+  const multiGap = hasPlan ? futAttrTotal - futPlanTotal : null;
+  const multiCov = hasPlan && futPlanTotal > 0 ? futAttrTotal/futPlanTotal*100 : null;
+
+  const kpisHtml = `<div class="h-kpis">
+    <div class="mini-kpi"><div class="mini-lbl">TPV New+Current${filterProb?` · ${filterProb}`:''}</div>
+      <div class="mini-val" style="color:var(--cyan)">${usd(futAttrTotal,true)}</div></div>
+    ${hasPlan ? `
+    <div class="mini-kpi"><div class="mini-lbl">Plan Restante</div>
+      <div class="mini-val">${usd(futPlanTotal,true)}</div></div>
+    <div class="mini-kpi"><div class="mini-lbl">Gap vs Plan</div>
+      <div class="mini-val" style="color:${multiGap>=0?'var(--green)':'var(--red)'}">
+        ${(multiGap>=0?'+':'')}${usd(multiGap,true)}</div></div>
+    <div class="mini-kpi"><div class="mini-lbl">Cobertura</div>
+      <div class="mini-val" style="color:${multiCov>=100?'var(--green)':multiCov>=85?'var(--amber)':'var(--red)'}">
+        ${multiCov.toFixed(1)}%</div></div>` : ''}
+  </div>`;
+
+  // Tabla Plan vs TPV
+  const vsMonthsM = D.monthly.filter(r => r.ym >= D.today_ym && (r.plan>0||r.current>0||r.new>0));
+  const mhdrM = vsMonthsM.map(r=>`<th class="r ${r.is_cur?'cur-col':''}">${r.label}${r.is_cur?' <span class="badge bb" style="font-size:10px">Hoy</span>':''}</th>`).join('') + `<th class="r total-col">TOTAL</th>`;
+  const tp2M = vsMonthsM.reduce((s,r)=>s+combinedPlan(r.ym),0);
+  const tt2M = vsMonthsM.reduce((s,r)=>s+combinedAttr(r.ym),0);
+  const tg2M = tt2M-tp2M, tpct2M = tp2M>0?tt2M/tp2M*100:0;
+  const tn2M = vsMonthsM.reduce((s,r)=>s+combinedNew(r.ym),0);
+  const tc2M = vsMonthsM.reduce((s,r)=>s+combinedCur(r.ym),0);
+
+  const planCellsM = vsMonthsM.map(r=>`<td class="r ${r.is_cur?'cur-col':''}">${combinedPlan(r.ym)>0?usd(combinedPlan(r.ym)):'<span class="text-muted">—</span>'}</td>`).join('')+`<td class="r total-col fw7">${usd(tp2M)}</td>`;
+  const newCellsM  = vsMonthsM.map(r=>`<td class="r ${r.is_cur?'cur-col':''}">${combinedNew(r.ym)>0?usd(combinedNew(r.ym)):'<span class="text-muted">—</span>'}</td>`).join('')+`<td class="r total-col">${tn2M>0?usd(tn2M):'<span class="text-muted">—</span>'}</td>`;
+  const curCellsM  = vsMonthsM.map(r=>`<td class="r ${r.is_cur?'cur-col':''}">${combinedCur(r.ym)>0?usd(combinedCur(r.ym)):'<span class="text-muted">—</span>'}</td>`).join('')+`<td class="r total-col">${tc2M>0?usd(tc2M):'<span class="text-muted">—</span>'}</td>`;
+  const tpvCellsM  = vsMonthsM.map(r=>`<td class="r fw7 ${r.is_cur?'cur-col':''}" style="color:var(--green)">${combinedAttr(r.ym)>0?usd(combinedAttr(r.ym)):'<span class="text-muted">—</span>'}</td>`).join('')+`<td class="r total-col fw7" style="color:var(--green)">${usd(tt2M)}</td>`;
+  const gapCellsM  = vsMonthsM.map(r=>{const p=combinedPlan(r.ym),t=combinedAttr(r.ym),pct=p>0?t/p*100:null;return `<td class="r ${r.is_cur?'cur-col':''}">${p>0?gapBadge(t-p,pct):'<span class="text-muted">—</span>'}</td>`;}).join('')+`<td class="r total-col">${gapBadge(tg2M,tpct2M)}</td>`;
+  const pctCellsM  = vsMonthsM.map(r=>{const p=combinedPlan(r.ym),t=combinedAttr(r.ym),pct=p>0?t/p*100:null;return `<td class="r ${r.is_cur?'cur-col':''}">${pct!==null?pctBadge(pct):'<span class="text-muted">—</span>'}</td>`;}).join('')+`<td class="r total-col">${pctBadge(tpct2M)}</td>`;
+
+  const vsPlanTableM = hasPlan ? `<div class="divider"></div>
+    <div style="overflow-x:auto"><table style="font-size:12px;min-width:100%">
+      <thead><tr><th style="min-width:100px"></th>${mhdrM}</tr></thead>
+      <tbody>
+        <tr><td class="fw7">Plan</td>${planCellsM}</tr>
+        <tr><td class="fw7" style="color:#a78bfa">TPV New</td>${newCellsM}</tr>
+        <tr><td class="fw7" style="color:var(--cyan)">TPV Current</td>${curCellsM}</tr>
+        <tr class="total-row"><td class="fw7" style="color:var(--green)">TPV Total</td>${tpvCellsM}</tr>
+        <tr><td class="fw7">Gap</td>${gapCellsM}</tr>
+        <tr><td class="fw7">% vs Plan</td>${pctCellsM}</tr>
+      </tbody>
+    </table></div>` : '';
+
+  body.innerHTML = `
+    <div class="h-cards">${cards}</div>
+    <div class="divider"></div>
+    <div class="chart-box" style="height:280px"><canvas id="hMultiChart"></canvas></div>
+    ${vsPlanTableM}
+    <div class="divider"></div>
+    <table>
+      <thead><tr><th>Hunter</th><th>Cuenta</th><th>ETA</th><th>Prob.</th>${colH}<th class="r">Total</th></tr></thead>
+      <tbody>${rows}
+        <tr class="total-row"><td colspan="4" class="fw7">TOTAL</td>${totCells}<td class="r fw7" style="color:var(--cyan)">${usd(grand)}</td></tr>
+      </tbody>
+    </table>`;
+
+  if (hunterC) { hunterC.destroy(); hunterC = null; }
+  const ctx2 = document.getElementById('hMultiChart').getContext('2d');
+  const planLineM = hasPlan ? chartMonths.map(r => combinedPlan(r.ym)||null) : [];
+  const stackDatasets = names.map((h,i) => {
+    const attr = hunterAttrMap[h];
+    const color = H_COLORS[D.hunter_list.indexOf(h)%H_COLORS.length];
+    return {label:h, data:chartMonths.map(r=>attr[r.ym]||0), backgroundColor:color+'bb', borderRadius:2, stack:'s'};
+  });
+  if (hasPlan) stackDatasets.push({label:'Plan',data:planLineM,type:'line',borderColor:'#f59e0b',
+    backgroundColor:'transparent',borderDash:[5,5],pointBackgroundColor:'#f59e0b',
+    pointRadius:4,tension:.3,order:0});
+  hunterC = new Chart(ctx2, {type:'bar', data:{labels:chartMonths.map(r=>r.label),datasets:stackDatasets},
+    options:{responsive:true,maintainAspectRatio:false,interaction:{intersect:false,mode:'index'},
+      plugins:{legend:{labels:{color:'#8892a4',font:{size:12},boxWidth:14}},
+        tooltip:{backgroundColor:'#181d2d',borderColor:'#252d45',borderWidth:1,titleColor:'#fff',bodyColor:'#8892a4',
+          callbacks:{label:c=>` ${c.dataset.label}: ${usd(c.parsed.y)}`}}},
+      scales:{x:{stacked:true,grid:{color:'rgba(37,45,69,.7)'},ticks:{color:'#8892a4'}},
+        y:{stacked:true,grid:{color:'rgba(37,45,69,.7)'},ticks:{color:'#8892a4',callback:v=>v>=1e6?`$${v/1e6}M`:v>=1e3?`$${v/1e3}K`:`$${v}`}}}}});
+}
+
+// ── Hunter: Todos ─────────────────────────────────────────────────────────────
+let hunterC = null;
+function renderAllHunters() {
+  const body = document.getElementById('hunterBody');
+  const futKeys = D.month_keys.slice(D.future_idx);
+
+  const cards = D.hunter_list.map(h => {
+    const hd = D.hunters[h];
+    const attr = getHunterAttr(h, filterProb);
+    const futAttr = futKeys.reduce((s,ym) => s+(attr[ym]||0), 0);
+    const visibleAccs = hd.accounts.filter(a =>
+      (!filterProb || (a.eta && a.eta < D.today_ym) || a.probability===filterProb) &&
+      haseFutureContrib(a)
+    ).length;
+    return `<div class="h-card" onclick="document.getElementById('hunterSel').value='${h}';renderHunter('${h}')">
+      <div class="h-name">${h}</div>
+      <div class="h-pipe">${usd(futAttr, true)}</div>
+      <div class="h-accs">${visibleAccs} cuenta${visibleAccs !== 1 ? 's' : ''} · New+Current</div>
+    </div>`;
+  }).join('');
+
+  // Tabla completa de todas las cuentas (meses futuros)
+  const futLbls = D.month_labels.slice(D.future_idx);
+  const allAccounts = [];
+  D.hunter_list.forEach(h => {
+    D.hunters[h].accounts.forEach(acc => {
+      if (filterProb && acc.probability !== filterProb) return;
+      // Solo muestra cuentas con ETA >= Mayo en la tabla
+      if (acc.eta && acc.eta < D.today_ym) return;
+      const futTotal = futKeys.reduce((s,ym) => s+(acc.monthly[ym]||0), 0);
+      if (futTotal > 0) allAccounts.push({...acc, hunter: h, futTotal});
+    });
+  });
+  allAccounts.sort((a,b) => (a.eta||'999999').localeCompare(b.eta||'999999') || a.hunter.localeCompare(b.hunter));
+
+  const colHeaders = futLbls.map(l => `<th class="r">${l}</th>`).join('');
+  const accRows = allAccounts.map(acc => {
+    const cells = futKeys.map(ym => {
+      const v = acc.monthly[ym] || 0;
+      const isEta = acc.eta === ym;
+      return `<td class="r">${v > 0 ? `<span ${isEta?'style="color:#a78bfa;font-weight:700"':''}>${usd(v)}</span>` : '<span class="text-muted">—</span>'}</td>`;
+    }).join('');
+    return `<tr>
+      <td><span class="badge bb" style="font-size:11px">${acc.hunter}</span></td>
+      <td><strong>${acc.name}</strong></td>
+      <td>${acc.eta ? `<span class="badge bp">${acc.eta_label||acc.eta}</span>` : '<span class="text-muted">—</span>'}</td>
+      ${cells}
+      <td class="r fw7" style="color:var(--cyan)">${usd(acc.futTotal)}</td>
+    </tr>`;
+  }).join('');
+
+  const totCells = futKeys.map(ym => {
+    const s = D.hunter_list.reduce((acc,h) => acc+(D.hunters[h].monthly[ym]||0), 0);
+    return `<td class="r fw7">${s > 0 ? usd(s) : '<span class="text-muted">—</span>'}</td>`;
+  }).join('');
+  const grandTotal = allAccounts.reduce((s,a) => s+a.futTotal, 0);
+
+  body.innerHTML = `<div class="h-cards">${cards}</div>
+    <div class="divider"></div>
+    <div class="chart-box" style="height:280px"><canvas id="hCompChart"></canvas></div>
+    <div class="divider"></div>
+    <table>
+      <thead><tr>
+        <th>Hunter</th><th>Cuenta</th><th>ETA Cierre</th>${colHeaders}<th class="r">Total</th>
+      </tr></thead>
+      <tbody>
+        ${accRows}
+        <tr class="total-row">
+          <td colspan="3" class="fw7">TOTAL</td>
+          ${totCells}
+          <td class="r fw7" style="color:var(--cyan)">${usd(grandTotal)}</td>
+        </tr>
+      </tbody>
+    </table>`;
+
+  if (hunterC) { hunterC.destroy(); hunterC = null; }
+  const ctx = document.getElementById('hCompChart').getContext('2d');
+  const names = D.hunter_list;
+  const palette = ['#3b82f6','#10b981','#8b5cf6','#f59e0b','#06b6d4','#ef4444','#ec4899','#84cc16'];
+
+  // Precalcula atribución filtrada para cada hunter
+  const hunterAttrs = {};
+  names.forEach(h => { hunterAttrs[h] = getHunterAttr(h, filterProb); });
+
+  const datasets = D.month_labels.map((lbl, mi) => ({
+    label: lbl,
+    data: names.map(h => hunterAttrs[h][D.month_keys[mi]] || 0),
+    backgroundColor: palette[mi % palette.length] + (mi < D.cur_idx ? '44' : 'bb'),
+    borderRadius: 2,
+  }));
+
+  hunterC = new Chart(ctx, {
+    type: 'bar',
+    data: {labels: names, datasets},
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: {labels:{color:'#8892a4',font:{size:11},boxWidth:12}},
+        tooltip: {
+          backgroundColor:'#181d2d', borderColor:'#252d45', borderWidth:1,
+          titleColor:'#fff', bodyColor:'#8892a4',
+          callbacks: {label: c => ` ${c.dataset.label}: ${usd(c.parsed.y)}`}
+        }
+      },
+      scales: {
+        x: {stacked:true, grid:{color:'rgba(37,45,69,.7)'}, ticks:{color:'#8892a4'}},
+        y: {stacked:true, grid:{color:'rgba(37,45,69,.7)'},
+            ticks:{color:'#8892a4', callback: v => v>=1e6?`$${v/1e6}M`:v>=1e3?`$${v/1e3}K`:`$${v}`}}
+      }
+    }
+  });
+}
+
+// ── Hunter: Individual ────────────────────────────────────────────────────────
+function renderHunter(name) {
+  if (!name) { renderAllHunters(); return; }
+  const hd = D.hunters[name];
+  if (!hd) { renderAllHunters(); return; }
+
+  const futKeys = D.month_keys.slice(D.future_idx);
+  const futLbls = D.month_labels.slice(D.future_idx);
+
+  // New/Current atribuido filtrado por prob.
+  // Cuentas ya cerradas (ETA < hoy) siempre se incluyen sin importar el filtro,
+  // porque ya ganaron y contribuyen como Current.
+  const filteredAccs = hd.accounts.filter(a =>
+    !filterProb ||
+    (a.eta && a.eta < D.today_ym) ||   // ya cerrada → siempre cuenta
+    a.probability === filterProb         // futura → filtrar por prob
+  );
+  const attrNew = {}, attrCur = {};
+  D.month_keys.forEach(ym => { attrNew[ym]=0; attrCur[ym]=0; });
+  filteredAccs.forEach(acc => {
+    const eta = acc.eta; if (!eta) return;
+    if (attrNew[eta]!==undefined)  attrNew[eta] += acc.monthly[eta]||0;
+    [1,2].forEach(n => { const d=addMos(eta,n); if(attrCur[d]!==undefined) attrCur[d]+=acc.monthly[d]||0; });
+  });
+  const attrTotal = ym => (attrNew[ym]||0) + (attrCur[ym]||0);
+
+  // Pipeline total filtrado (suma del pipe de cuentas filtradas, sin ventana de atribución)
+  const futPipeFiltered = futKeys.reduce((s,ym) =>
+    s + filteredAccs.reduce((a2,acc) => a2+(acc.monthly[ym]||0), 0), 0);
+
+  // Gap y cobertura usando atribución filtrada (New+Current)
+  const futAttrFiltered = futKeys.reduce((s,ym)=>s+attrTotal(ym),0);
+  const gap     = hd.has_plan ? futAttrFiltered - hd.future_plan : null;
+  const covPct  = hd.has_plan && hd.future_plan > 0 ? futAttrFiltered / hd.future_plan * 100 : null;
+
+  const kpisHtml = `
+    <div class="h-detail-name">${name}</div>
+    <div class="h-kpis">
+      <div class="mini-kpi">
+        <div class="mini-lbl">TPV New+Current${filterProb ? ` · ${filterProb}` : ''}</div>
+        <div class="mini-val" style="color:var(--cyan)">${usd(futAttrFiltered,true)}</div>
+      </div>
+      ${hd.has_plan ? `
+        <div class="mini-kpi">
+          <div class="mini-lbl">Plan Restante</div>
+          <div class="mini-val">${usd(hd.future_plan,true)}</div>
+        </div>
+        <div class="mini-kpi">
+          <div class="mini-lbl">Gap vs Plan</div>
+          <div class="mini-val" style="color:${gap>=0?'var(--green)':'var(--red)'}">
+            ${(gap>=0?'+':'')}${usd(gap,true)}
+          </div>
+        </div>
+        <div class="mini-kpi">
+          <div class="mini-lbl">Cobertura</div>
+          <div class="mini-val" style="color:${covPct>=100?'var(--green)':covPct>=85?'var(--amber)':'var(--red)'}">
+            ${covPct.toFixed(1)}%
+          </div>
+        </div>
+      ` : `
+        <div class="mini-kpi">
+          <div class="mini-lbl">Cuentas activas</div>
+          <div class="mini-val">${hd.accounts.length}</div>
+        </div>
+      `}
+    </div>`;
+
+  const chartHtml = `<div class="chart-box" style="height:280px"><canvas id="hDetChart"></canvas></div>`;
+
+  // Tabla mensual TPV vs Plan
+  // Hunter: solo desde el mes actual en adelante (Abr ya pasó)
+  const vsMonths = D.monthly.filter(r => r.ym >= D.today_ym && (r.plan > 0 || r.current > 0 || r.new > 0));
+  let vsPlanTable = '';
+  if (hd.has_plan) {
+    // Recalcula totales usando monthly_attr (ventana 3 meses por cuenta)
+    const tp2   = vsMonths.reduce((s,r) => s+(hd.plan[r.ym]||0), 0);
+    const tt2   = vsMonths.reduce((s,r) => s+attrTotal(r.ym), 0);
+    const tg2   = tt2 - tp2;
+    const tpct2 = tp2 > 0 ? tt2/tp2*100 : 0;
+
+    const mhdr = vsMonths.map(r =>
+      `<th class="r ${r.is_cur?'cur-col':''}">${r.label}${r.is_cur?' <span class="badge bb" style="font-size:10px">Hoy</span>':''}</th>`
+    ).join('') + `<th class="r total-col">TOTAL</th>`;
+
+    const planCells = vsMonths.map(r => {
+      const v = hd.plan[r.ym]||0;
+      return `<td class="r ${r.is_cur?'cur-col':''}">${v>0?usd(v):'<span class="text-muted">—</span>'}</td>`;
+    }).join('') + `<td class="r total-col fw7">${usd(tp2)}</td>`;
+
+    const tn2 = vsMonths.reduce((s,r) => s+(attrNew[r.ym]||0), 0);
+    const tc2 = vsMonths.reduce((s,r) => s+(attrCur[r.ym]||0), 0);
+
+    const newCells = vsMonths.map(r => {
+      const v = attrNew[r.ym]||0;
+      return `<td class="r ${r.is_cur?'cur-col':''}">${v>0?usd(v):'<span class="text-muted">—</span>'}</td>`;
+    }).join('') + `<td class="r total-col">${tn2>0?usd(tn2):'<span class="text-muted">—</span>'}</td>`;
+
+    const curCells = vsMonths.map(r => {
+      const v = attrCur[r.ym]||0;
+      return `<td class="r ${r.is_cur?'cur-col':''}">${v>0?usd(v):'<span class="text-muted">—</span>'}</td>`;
+    }).join('') + `<td class="r total-col">${tc2>0?usd(tc2):'<span class="text-muted">—</span>'}</td>`;
+
+    const tpvCells = vsMonths.map(r => {
+      const v = attrTotal(r.ym);
+      return `<td class="r ${r.is_cur?'cur-col':''}">${v>0?usd(v):'<span class="text-muted">—</span>'}</td>`;
+    }).join('') + `<td class="r total-col fw7" style="color:var(--green)">${usd(tt2)}</td>`;
+
+    const gapCells = vsMonths.map(r => {
+      const p=hd.plan[r.ym]||0, t=hd.monthly_attr[r.ym]||0, pct=p>0?t/p*100:null;
+      return `<td class="r ${r.is_cur?'cur-col':''}">${p>0?gapBadge(t-p,pct):'<span class="text-muted">—</span>'}</td>`;
+    }).join('') + `<td class="r total-col">${gapBadge(tg2,tpct2)}</td>`;
+
+    const pctCells = vsMonths.map(r => {
+      const p=hd.plan[r.ym]||0, t=hd.monthly_attr[r.ym]||0, pct=p>0?t/p*100:null;
+      return `<td class="r ${r.is_cur?'cur-col':''}">${pct!==null?pctBadge(pct):'<span class="text-muted">—</span>'}</td>`;
+    }).join('') + `<td class="r total-col">${pctBadge(tpct2)}</td>`;
+
+    vsPlanTable = `
+      <div class="divider"></div>
+      <div style="overflow-x:auto">
+      <table style="font-size:12px;min-width:100%">
+        <thead><tr><th style="min-width:100px"></th>${mhdr}</tr></thead>
+        <tbody>
+          <tr><td class="fw7">Plan</td>${planCells}</tr>
+          <tr><td class="fw7" style="color:#a78bfa">TPV New</td>${newCells}</tr>
+          <tr><td class="fw7" style="color:var(--cyan)">TPV Current</td>${curCells}</tr>
+          <tr class="total-row"><td class="fw7" style="color:var(--green)">TPV Total</td>${tpvCells}</tr>
+          <tr><td class="fw7">Gap</td>${gapCells}</tr>
+          <tr><td class="fw7">% vs Plan</td>${pctCells}</tr>
+        </tbody>
+      </table>
+      </div>`;
+  }
+
+  // Accounts table (future months)
+  // Muestra cuentas desde Mayo + cuentas pre-Mayo que aún contribuyen como Current (ETA+2 >= hoy)
+  const accRows = hd.accounts.filter(acc =>
+    (!filterProb || acc.probability === filterProb) &&
+    haseFutureContrib(acc) &&
+    futKeys.some(ym => (acc.monthly[ym]||0) > 0));
+  let tblHtml = '';
+  if (accRows.length) {
+    const colHeaders = futLbls.map(l => `<th class="r">${l}</th>`).join('');
+    const rows = accRows.map(acc => {
+      const cells = futKeys.map(ym => {
+        const v = acc.monthly[ym] || 0;
+        const isEta = acc.eta === ym;
+        return `<td class="r">${v > 0 ? `<span ${isEta?'style="color:#a78bfa;font-weight:700"':''}>${usd(v)}</span>` : '<span class="text-muted">—</span>'}</td>`;
+      }).join('');
+      return `<tr>
+        <td><strong>${acc.name}</strong></td>
+        <td>${acc.eta ? `<span class="badge bp">${acc.eta_label||acc.eta}</span>` : '<span class="text-muted">—</span>'}</td>
+        <td>${acc.probability ? `<span class="badge ${acc.probability==='Alta'?'bg':acc.probability==='Media'?'ba':'br'}">${acc.probability}</span>` : '<span class="text-muted">—</span>'}</td>
+        ${cells}
+        <td class="r fw7" style="color:var(--cyan)">${usd(futKeys.reduce((s,ym)=>s+(acc.monthly[ym]||0),0))}</td>
+      </tr>`;
+    }).join('');
+
+    // Total row usa solo cuentas visibles (filtradas)
+    const filtTotByMonth = {};
+    futKeys.forEach(ym => {
+      filtTotByMonth[ym] = accRows.reduce((s,acc) => s+(acc.monthly[ym]||0), 0);
+    });
+    const filtGrandTotal = futKeys.reduce((s,ym) => s+filtTotByMonth[ym], 0);
+    const totCells = futKeys.map(ym =>
+      `<td class="r fw7">${filtTotByMonth[ym]>0 ? usd(filtTotByMonth[ym]) : '<span class="text-muted">—</span>'}</td>`
+    ).join('');
+
+    tblHtml = `
+      <div class="divider"></div>
+      <table>
+        <thead><tr>
+          <th>Cuenta</th><th>ETA Cierre</th><th>Prob.</th>${colHeaders}<th class="r">Total</th>
+        </tr></thead>
+        <tbody>
+          ${rows}
+          <tr class="total-row">
+            <td colspan="3">TOTAL</td>
+            ${totCells}
+            <td class="r fw7" style="color:var(--cyan)">${usd(filtGrandTotal)}</td>
+          </tr>
+        </tbody>
+      </table>`;
+  } else {
+    tblHtml = '<div class="no-data">Sin cuentas con pipe en los próximos meses.</div>';
+  }
+
+  document.getElementById('hunterBody').innerHTML = kpisHtml + chartHtml + vsPlanTable + tblHtml;
+
+  if (hunterC) { hunterC.destroy(); hunterC = null; }
+  const ctx = document.getElementById('hDetChart').getContext('2d');
+
+  // Solo meses desde el actual en adelante
+  const chartMonths = D.monthly.filter((_,i) => i >= D.future_idx);
+  const chartLabels = chartMonths.map(r => r.label);
+  const newData     = chartMonths.map(r => attrNew[r.ym]||0);
+  const curData     = chartMonths.map(r => attrCur[r.ym]||0);
+  const planLine    = hd.has_plan ? chartMonths.map(r => hd.plan[r.ym]||null) : [];
+
+  const datasets = [
+    {
+      label: 'TPV New',
+      data: newData,
+      backgroundColor: 'rgba(139,92,246,.8)',
+      borderRadius: 4, stack: 'tpv', order: 1,
+    },
+    {
+      label: 'TPV Current',
+      data: curData,
+      backgroundColor: 'rgba(6,182,212,.7)',
+      borderRadius: 4, stack: 'tpv', order: 1,
+    },
+  ];
+  if (hd.has_plan) {
+    datasets.push({
+      label: 'Plan',
+      data: planLine, type: 'line',
+      borderColor: '#f59e0b', backgroundColor: 'transparent',
+      borderDash: [5,5], pointBackgroundColor: '#f59e0b',
+      pointRadius: 4, tension: .3, order: 0,
+    });
+  }
+
+  hunterC = new Chart(ctx, {
+    type: 'bar',
+    data: {labels: chartLabels, datasets},
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      interaction: {intersect:false, mode:'index'},
+      plugins: {
+        legend: {labels:{color:'#8892a4',font:{size:12},boxWidth:14}},
+        tooltip: {
+          backgroundColor:'#181d2d', borderColor:'#252d45', borderWidth:1,
+          titleColor:'#fff', bodyColor:'#8892a4',
+          callbacks: {label: c => ` ${c.dataset.label}: ${usd(c.parsed.y)}`}
+        }
+      },
+      scales: {
+        x: {grid:{color:'rgba(37,45,69,.7)'}, ticks:{color:'#8892a4'}},
+        y: {grid:{color:'rgba(37,45,69,.7)'},
+            ticks:{color:'#8892a4', callback: v => v>=1e6?`$${v/1e6}M`:v>=1e3?`$${v/1e3}K`:`$${v}`}}
+      }
+    }
+  });
+}
+
+// ── Filtro Probabilidad ───────────────────────────────────────────────────────
+let filterProb = null;
+
+function buildProbFilters() {
+  const container = document.getElementById('probFilters');
+  const all = ['Todas', ...D.prob_list];
+  container.innerHTML = all.map(p => {
+    const isAll = p === 'Todas';
+    const cls = isAll ? 'p-all active' : `p-${p}`;
+    return `<span class="prob-pill ${cls}" data-prob="${isAll ? '' : p}" onclick="setProb('${isAll ? '' : p}')">${p}</span>`;
+  }).join('');
+}
+
+function setProb(prob) {
+  filterProb = prob || null;
+  document.querySelectorAll('.prob-pill').forEach(el => {
+    const elProb = el.dataset.prob;
+    const isActive = (!filterProb && !elProb) || elProb === filterProb;
+    // Reconstruir clase limpia
+    if (!elProb) {
+      el.className = `prob-pill p-all${isActive ? ' active' : ' inactive'}`;
+    } else {
+      el.className = `prob-pill p-${elProb}${isActive ? ' active' : ' inactive'}`;
+    }
+  });
+  buildMonthTable();
+  buildMainChart();
+  renderSelected();
+}
+
+// Helper global: suma n meses a YYYYMM
+function addMos(ym, n) {
+  let y=parseInt(ym.slice(0,4)), m=parseInt(ym.slice(4))+n;
+  while(m>12){m-=12;y++;} while(m<1){m+=12;y--;}
+  return `${y}${String(m).padStart(2,'0')}`;
+}
+
+// Retorna true si la cuenta tiene contribución futura (como New o Current desde hoy)
+function haseFutureContrib(acc) {
+  if (!acc.eta) return true;
+  return addMos(acc.eta, 2) >= D.today_ym;
+}
+
+// Agrega todos los accounts de todos los hunters (filtrados por prob, incluyendo pre-Mayo si contribuyen como Current)
+function allAccounts(prob) {
+  const accs = [];
+  D.hunter_list.forEach(h => D.hunters[h].accounts.forEach(a => accs.push({...a, hunter: h})));
+  // Cuentas ya cerradas (ETA < hoy) siempre incluidas; futuras se filtran por prob
+  const filtered = accs.filter(a =>
+    !prob ||
+    (a.eta && a.eta < D.today_ym) ||
+    a.probability === prob
+  );
+  return filtered.filter(a => haseFutureContrib(a));
+}
+
+// Calcula monthly TPV total desde cuentas
+function monthlyFromAccounts(accounts) {
+  const result = {};
+  D.month_keys.forEach(ym => { result[ym] = accounts.reduce((s,a) => s+(a.monthly[ym]||0), 0); });
+  return result;
+}
+
+// Calcula New + Current atribuido (ventana ETA, ETA+1, ETA+2) desde cuentas
+function monthlyAttrFromAccounts(accounts) {
+  const newM = {}, curM = {};
+  D.month_keys.forEach(ym => { newM[ym]=0; curM[ym]=0; });
+  accounts.forEach(acc => {
+    const eta = acc.eta; if (!eta) return;
+    if (newM[eta]!==undefined)           newM[eta] += acc.monthly[eta]||0;
+    [1,2].forEach(n => { const d=addMos(eta,n); if(curM[d]!==undefined) curM[d]+=acc.monthly[d]||0; });
+  });
+  return {new: newM, cur: curM};
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  try { buildKpis();        } catch(e) { console.error('buildKpis', e); }
+  try { buildProbFilters(); } catch(e) { console.error('buildProbFilters', e); }
+  try { buildHunterPills(); } catch(e) { console.error('buildHunterPills', e); }
+  try { buildMonthTable();  } catch(e) { console.error('buildMonthTable', e); }
+  try { buildMainChart();   } catch(e) { console.error('buildMainChart', e); }
+  try { renderAllHunters(); } catch(e) { console.error('renderAllHunters', e); }
+});
+</script>
+</body>
+</html>
