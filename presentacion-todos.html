@@ -606,10 +606,10 @@ function renderPerformance(d,sid){
   }
 
   const perfId='perf-sel-'+sid;
-  // Build dropdown options: YTD global, YTD sup, each month
+  // Build dropdown options: YTD sup (default), YTD global, each month
   const supName=d.sup||"Equipo";
-  let opts='<option value="ytd_global">YTD Global (todo el año)</option>'+
-           '<option value="ytd">YTD '+supName+' (bajo este equipo)</option>';
+  let opts='<option value="ytd" selected>YTD '+supName+' (bajo este equipo)</option>'+
+           '<option value="ytd_global">YTD Global (todo el año)</option>';
   for(const m of months){
     opts+='<option value="'+m+'">'+MO_NAMES[m]+'</option>';
   }
@@ -714,7 +714,7 @@ function renderPerformance(d,sid){
     '<th style="text-align:right;font-size:10px">Plan Anual</th>'+
     '<th style="text-align:center;font-size:10px">vs Anual</th>'+
     '</tr></thead>'+
-    '<tbody id="perf-tbody-'+sid+'">'+buildTable('ytd_global')+'</tbody></table></div>';
+    '<tbody id="perf-tbody-'+sid+'">'+buildTable('ytd')+'</tbody></table></div>';
 
   window['_perfBuild_'+sid]=buildTable;
 }
