@@ -631,18 +631,23 @@ function renderPerformance(d,sid){
       // - past hunter (transferred out): only show months under this supervisor
       const isMonth=key.length===6&&key.startsWith('20');
       if(isMonth && !h.is_current && !(h.months_under_sup||[]).includes(key)) continue;
-      const tn=(h.tpv_new||{})[key]||0;
-      const tc=(h.tpv_cur||{})[key]||0;
-      const tl=(h.tpv_leg||{})[key]||0;
-      const tt=(h.tpv_total||{})[key]||0;
-      const pg_tpv=(h.plan_gest_tpv||{})[key]||0;
-      const pa_tpv=(h.plan_tpv||{})[key]||0;
-      const vg_tpv=pg_tpv?(tn+tc)/pg_tpv-1:null;   // Gestión = New+Current vs plan
-      const va_tpv=pa_tpv?tt/pa_tpv-1:null;          // Anual = Total vs plan
-      const vn=(h.vc_new||{})[key]||0;
-      const vc_c=(h.vc_cur||{})[key]||0;
-      const vct=(h.vc_total||{})[key]||0;
-      const pg_vc=(h.plan_gest_vc||{})[key]||0;
+      // For ytd key: sum monthly values from months_under_sup directly (avoids stale stored ytd)
+      function _sup(obj,k){
+        if(k!=='ytd') return (obj||{})[k]||0;
+        return (h.months_under_sup||[]).reduce(function(s,m){return s+((obj||{})[m]||0);},0);
+      }
+      const tn=_sup(h.tpv_new,key);
+      const tc=_sup(h.tpv_cur,key);
+      const tl=_sup(h.tpv_leg,key);
+      const tt=_sup(h.tpv_total,key);
+      const pg_tpv=_sup(h.plan_gest_tpv,key);
+      const pa_tpv=_sup(h.plan_tpv,key);
+      const vg_tpv=pg_tpv?(tn+tc)/pg_tpv-1:null;
+      const va_tpv=pa_tpv?tt/pa_tpv-1:null;
+      const vn=_sup(h.vc_new,key);
+      const vc_c=_sup(h.vc_cur,key);
+      const vct=_sup(h.vc_total,key);
+      const pg_vc=_sup(h.plan_gest_vc,key);
       const pa_vc=(h.plan_vc||{})[key]||0;
       const vg_vc=pg_vc?(vn+vc_c)/pg_vc-1:null;     // Gestión VC = New+Current vs plan
       const va_vc=pa_vc?vct/pa_vc-1:null;             // Anual VC = Total vs plan
