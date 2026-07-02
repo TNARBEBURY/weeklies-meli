@@ -622,32 +622,29 @@ function renderPerformance(d,sid){
       // ytd_global: todos los hunters (sin filtro)
       // ytd (supervisor): todos los hunters con datos en ese período (actuales e históricos)
       if(key==='ytd'){
-        const yv2=h.ytd_values||{};
-        const hasYtd=yv2.tpv_total||0;
-        const hasPlan=yv2.plan_tpv||0;
-        if(!hasYtd && !hasPlan) continue;
+        const _yv0=h.ytd_values||{};
+        if(!(_yv0.tpv_total||0) && !(_yv0.plan_tpv||0)) continue;
       }
       // Monthly view:
       // - current hunter: show all months (full history, cross-supervisor)
       // - past hunter (transferred out): only show months under this supervisor
       const isMonth=key.length===6&&key.startsWith('20');
       if(isMonth && !h.is_current && !(h.months_under_sup||[]).includes(key)) continue;
-      // For ytd: use pre-computed values from Python (guaranteed correct)
-      // For ytd_global and monthly: use from metric dict directly
-      const yv=h.ytd_values||{};
-      function _v(met,k){return k==='ytd'?yv[met]||0:((h[met]||{})[k]||0);}
-      const tn=_v('tpv_new',key);
-      const tc=_v('tpv_cur',key);
-      const tl=_v('tpv_leg',key);
-      const tt=_v('tpv_total',key);
-      const pg_tpv=_v('plan_gest_tpv',key);
-      const pa_tpv=_v('plan_tpv',key);
+      // For ytd: use pre-computed values from Python (guaranteed correct, no function scope issues)
+      const _yv=h.ytd_values||{};
+      const _yk=key==='ytd';
+      const tn=_yk?(_yv.tpv_new||0):((h.tpv_new||{})[key]||0);
+      const tc=_yk?(_yv.tpv_cur||0):((h.tpv_cur||{})[key]||0);
+      const tl=_yk?(_yv.tpv_leg||0):((h.tpv_leg||{})[key]||0);
+      const tt=_yk?(_yv.tpv_total||0):((h.tpv_total||{})[key]||0);
+      const pg_tpv=_yk?(_yv.plan_gest_tpv||0):((h.plan_gest_tpv||{})[key]||0);
+      const pa_tpv=_yk?(_yv.plan_tpv||0):((h.plan_tpv||{})[key]||0);
       const vg_tpv=pg_tpv?(tn+tc)/pg_tpv-1:null;
       const va_tpv=pa_tpv?tt/pa_tpv-1:null;
-      const vn=_v('vc_new',key);
-      const vc_c=_v('vc_cur',key);
-      const vct=_v('vc_total',key);
-      const pg_vc=_v('plan_gest_vc',key);
+      const vn=_yk?(_yv.vc_new||0):((h.vc_new||{})[key]||0);
+      const vc_c=_yk?(_yv.vc_cur||0):((h.vc_cur||{})[key]||0);
+      const vct=_yk?(_yv.vc_total||0):((h.vc_total||{})[key]||0);
+      const pg_vc=_yk?(_yv.plan_gest_vc||0):((h.plan_gest_vc||{})[key]||0);
       const pa_vc=(h.plan_vc||{})[key]||0;
       const vg_vc=pg_vc?(vn+vc_c)/pg_vc-1:null;     // Gestión VC = New+Current vs plan
       const va_vc=pa_vc?vct/pa_vc-1:null;             // Anual VC = Total vs plan
