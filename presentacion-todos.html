@@ -897,22 +897,27 @@ function renderPipelineDash(sid){
 
 let currentChartSlides={perf:7,pipe:8,acc:null};
 
+function _togDetRow(tr){
+  var n=tr.nextElementSibling;
+  if(n) n.style.display=(n.style.display==='none'?'':' none');
+}
 function renderEquipoDetalle(d){
   const slideEl=document.getElementById("s4");
   if(!slideEl) return;
   document.getElementById("s4-det-tag").textContent=d.month_name+" "+d.year+" · Semana "+d.semana;
   const bd=d.hunter_breakdown||[];
-  const SC2={"Propuesta Enviada":"#009EE3","Negociación":"#0077B6","Follow Up":"#5A189A","Interesado":"#7B68EE","Configuración":"#FF7733","Roll Out":"#FFB300","Cerrada Ganada":"#00A650","Cerrada Perdida":"#F23D4F"};
-  function pcolor2(p){if(p===null||p===undefined)return"#aaa";return p>=0?"var(--green)":"var(--red)";}
-  function pfmt2(p){if(p===null||p===undefined)return"—";return(p>=0?"+":"")+p.toFixed(0)+"%";}
+  function pcolor2(p){return(p===null||p===undefined)?"#aaa":(p>=0?"var(--green)":"var(--red)");}
+  function pfmt2(p){return(p===null||p===undefined)?"—":((p>=0?"+":"")+p.toFixed(0)+"%");}
   function acctRows(accts,color){
     if(!accts||!accts.length) return '<tr><td colspan="3" style="color:#bbb;padding:4px 12px;font-size:11px">Sin cuentas</td></tr>';
-    return accts.map(a=>'<tr style="background:rgba(0,0,0,0.02)"><td style="padding:3px 12px 3px 28px;font-size:11px;color:#555">→ '+a.collector+'</td><td style="padding:3px 12px;font-size:11px;color:var(--gray);text-align:right">'+a.eta+'</td><td style="padding:3px 12px;font-size:11px;font-weight:600;color:'+color+';text-align:right">'+a.tpv+'</td></tr>').join("");
+    return accts.map(function(a){return '<tr><td style="padding:3px 12px 3px 28px;font-size:11px;color:#555">→ '+a.collector+'</td><td style="padding:3px 12px;font-size:11px;color:var(--gray);text-align:right">'+a.eta+'</td><td style="padding:3px 12px;font-size:11px;font-weight:600;color:'+color+';text-align:right">'+a.tpv+'</td></tr>';}).join("");
   }
   let html='<table class="tbl" style="font-size:12.5px;width:100%"><thead><tr><th>Hunter</th><th style="text-align:right;color:var(--blue)">Current</th><th style="text-align:right;color:var(--green)">New</th><th style="text-align:right">Lineal</th><th style="text-align:right">Objetivo</th><th style="text-align:center">% vs Obj</th></tr></thead><tbody>';
-  for(const h of bd){
+  for(let i=0;i<bd.length;i++){
+    const h=bd[i];
     const pc=h.pct;
-    html+='<tr style="border-top:2px solid #e0e0e0;cursor:pointer" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display===''none''?'''':''''">'+
+    const rid="det-row-"+i;
+    html+='<tr style="border-top:2px solid #e0e0e0;cursor:pointer" onclick="_togDetRow(this)">'+
       '<td style="padding:9px 12px;font-weight:700">▸ '+h.hunter+'</td>'+
       '<td style="padding:9px 12px;text-align:right;color:var(--blue)">'+h.current+'</td>'+
       '<td style="padding:9px 12px;text-align:right;color:var(--green)">'+h.new+'</td>'+
@@ -927,8 +932,7 @@ function renderEquipoDetalle(d){
       '<tr><td colspan="3" style="padding:6px 12px 2px;font-size:11px;font-weight:700;color:var(--blue)">CURRENT ('+h.cur_accounts.length+' cuentas)</td></tr>'+
       acctRows(h.cur_accounts,"var(--blue)")+
       (h.leg_accounts&&h.leg_accounts.length?
-        '<tr><td colspan="3" style="padding:6px 12px 2px;font-size:11px;font-weight:700;color:var(--gray)">LEGACY ('+h.leg_accounts.length+' cuentas)</td></tr>'+acctRows(h.leg_accounts,"var(--gray)"):
-        "")+
+        '<tr><td colspan="3" style="padding:6px 12px 2px;font-size:11px;font-weight:700;color:var(--gray)">LEGACY ('+h.leg_accounts.length+' cuentas)</td></tr>'+acctRows(h.leg_accounts,"var(--gray)"):"")+
       '</table></td></tr>';
   }
   html+='</tbody></table>';
