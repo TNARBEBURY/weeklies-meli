@@ -935,6 +935,24 @@ function renderEquipoDetalle(d){
         '<tr><td colspan="3" style="padding:6px 12px 2px;font-size:11px;font-weight:700;color:var(--gray)">LEGACY ('+h.leg_accounts.length+' cuentas)</td></tr>'+acctRows(h.leg_accounts,"var(--gray)"):"")+
       '</table></td></tr>';
   }
+  // Total row
+  let tCur=0,tNew=0,tLin=0,tObj=0;
+  for(const h of bd){
+    tCur+=parseFloat((h.current||"0").replace(/[\$,K]/g,"").replace("M","e6"))||0;
+    tNew+=parseFloat((h.new||"0").replace(/[\$,K]/g,"").replace("M","e6"))||0;
+    tLin+=parseFloat((h.lineal||"0").replace(/[\$,K]/g,"").replace("M","e6"))||0;
+    tObj+=parseFloat((h.objetivo||"0").replace(/[\$,K]/g,"").replace("M","e6"))||0;
+  }
+  function fmtDet(v){if(v>=1e6)return"$"+(v/1e6).toFixed(1)+"M";if(v>=1000)return"$"+(v/1000).toFixed(0)+"K";return"$"+Math.round(v);}
+  const tPct=tObj?(tLin/tObj-1)*100:null;
+  html+='<tr style="background:rgba(0,0,0,0.07);border-top:2px solid rgba(0,0,0,0.15)">'+
+    '<td style="padding:9px 12px;font-weight:900">TOTAL EQUIPO</td>'+
+    '<td style="padding:9px 12px;text-align:right;font-weight:900;color:var(--blue)">'+fmtDet(tCur)+'</td>'+
+    '<td style="padding:9px 12px;text-align:right;font-weight:900;color:var(--green)">'+fmtDet(tNew)+'</td>'+
+    '<td style="padding:9px 12px;text-align:right;font-weight:900;color:var(--blue)">'+fmtDet(tLin)+'</td>'+
+    '<td style="padding:9px 12px;text-align:right;font-weight:900">'+fmtDet(tObj)+'</td>'+
+    '<td style="padding:9px 12px;text-align:center;font-weight:900;color:'+pcolor2(tPct)+'">'+pfmt2(tPct)+'</td>'+
+  '</tr>';
   html+='</tbody></table>';
   document.getElementById("s4-det-body").innerHTML=html;
 }
