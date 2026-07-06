@@ -304,7 +304,7 @@ function _togPrevRows(btn){
   var tbl=btn.closest('table');
   var det=tbl.querySelectorAll('[data-prev="'+gid+'"]');
   var open=det.length>0&&det[0].style.display!=='none';
-  for(var j=0;j<det.length;j++) det[j].style.display=open?'none':'';
+  for(var j=0;j<det.length;j++) det[j].style.display=open?'none':'table-row';
 }
 function renderPrevClose(d){
   const pc=d.prev_close||[];
@@ -317,7 +317,7 @@ function renderPrevClose(d){
     const pctStr=pct===null?"—":(pct>=0?"+"+pct.toFixed(1)+"%":pct.toFixed(1)+"%");
     const hasAccts=h.accounts&&h.accounts.length>0;
     rows+=(hasAccts?'<tr style="cursor:pointer" data-grp="'+i+'" onclick="_togPrevRows(this)">':'<tr>')+
-      '<td style="font-weight:700">'+(hasAccts?'▸ ':''')+h.hunter+'</td>'+
+      '<td style="font-weight:700">'+(hasAccts?'▸ ':'' )+h.hunter+'</td>'+
       '<td style="text-align:right;font-weight:700;color:var(--blue)">'+h.real+'</td>'+
       '<td style="text-align:right;color:var(--gray)">'+h.obj+'</td>'+
       '<td style="text-align:center;font-size:14px;font-weight:800;color:'+col+'">'+pctStr+'</td>'+
