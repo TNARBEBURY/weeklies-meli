@@ -760,9 +760,10 @@ function renderCobertura(d,sid){
   function fmtM(v){
     if(!v&&v!==0)return'—';
     const n=Math.round(v);
-    if(n>=1000000)return'$'+(n/1000000).toFixed(2)+'M';
-    if(n>=1000)return'$'+(n/1000).toFixed(0)+'K';
-    return'$'+n;
+    const a=Math.abs(n),s=n<0?'-':'';
+    if(a>=1000000)return s+'$'+(a/1000000).toFixed(2)+'M';
+    if(a>=1000)return s+'$'+(a/1000).toFixed(0)+'K';
+    return s+'$'+a;
   }
 
   function coverageBadge(covM,gapToLC){
@@ -844,9 +845,10 @@ function renderCoberturaProyectada(d,sid){
   function fmtM(v){
     if(!v&&v!==0)return'—';
     const n=Math.round(v);
-    if(n>=1000000)return'$'+(n/1000000).toFixed(2)+'M';
-    if(n>=1000)return'$'+(n/1000).toFixed(0)+'K';
-    return'$'+n;
+    const a=Math.abs(n),s=n<0?'-':'';
+    if(a>=1000000)return s+'$'+(a/1000000).toFixed(2)+'M';
+    if(a>=1000)return s+'$'+(a/1000).toFixed(0)+'K';
+    return s+'$'+a;
   }
 
   function coverageBadge(covM){
