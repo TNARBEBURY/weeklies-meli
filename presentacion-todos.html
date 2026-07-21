@@ -806,7 +806,7 @@ function renderCobertura(d,sid){
       '<td style="text-align:center">'+coverageBadge(covM,gapToLC)+'</td>'+
       '<td style="text-align:right;color:#555">'+fmtM(planDisplay)+'</td>'+
       '<td style="text-align:right;font-weight:700;color:'+( excedDisplay>=0?'#00A650':'#e53935')+'">'+fmtM(excedDisplay)+'</td>'+
-      '<td style="text-align:right;color:#e53935">'+( gap!=null?'<span style="font-weight:700">'+fmtM(gap)+'</span>':'<span style="color:#6a1b9a;font-weight:700">Año cubierto ✓</span>')+'</td>'+
+      '<td style="text-align:right;color:#e53935">'+( isPast?'<span style="color:#aaa">—</span>':(gap!=null?'<span style="font-weight:700">'+fmtM(gap)+'</span>':'<span style="color:#6a1b9a;font-weight:700">Año cubierto ✓</span>'))+'</td>'+
     '</tr>';
   }
   slideEl.innerHTML=
@@ -851,7 +851,7 @@ function renderCoberturaProyectada(d,sid){
     return s+'$'+a;
   }
 
-  function coverageBadge(covM){
+  function coverageBadge(covM,gapToLC){
     if(!covM||covM<lastClosed)
       return'<span style="background:#e53935;color:#fff;padding:3px 10px;border-radius:10px;font-size:12px;font-weight:700">Falta '+fmtM(gapToLC||0)+'</span>';
     const label=MO_FULL[covM]||covM;
@@ -893,7 +893,7 @@ function renderCoberturaProyectada(d,sid){
       '<td style="text-align:right;font-weight:900;color:#1565c0">'+fmtM(efectivo)+'</td>'+
       '<td style="text-align:center">'+coverageBadge(covM,gapToLC)+'</td>'+
       '<td style="text-align:right;font-weight:700;color:#555">'+fmtM(planDisplay)+'</td>'+
-      '<td style="text-align:right;color:#e53935">'+( gap!=null?'<span style="font-weight:700">'+fmtM(gap)+'</span>':'<span style="color:#6a1b9a;font-weight:700">Año cubierto ✓</span>')+'</td>'+
+      '<td style="text-align:right;color:#e53935">'+( isPast?'<span style="color:#aaa">—</span>':(gap!=null?'<span style="font-weight:700">'+fmtM(gap)+'</span>':'<span style="color:#6a1b9a;font-weight:700">Año cubierto ✓</span>'))+'</td>'+
     '</tr>';
   }
   slideEl.innerHTML=
