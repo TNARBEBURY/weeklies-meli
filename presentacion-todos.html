@@ -782,12 +782,13 @@ function renderCobertura(d,sid){
     if(!row.is_current) continue;
     const plan=row.plan_tpv||{};
     const ytd=row.tpv_total&&row.tpv_total.ytd_global!=null?row.tpv_total.ytd_global:(row.ytd_values&&row.ytd_values.tpv_total||0);
-    let cumsum=0,covM=null,covCum=0,nextM=null,nextPv=0,cumPlanLC=0;
+    let cumPlanLC=0;
+    for(const m of months){const pv=plan[m]||0;if(m>lastClosed)break;cumPlanLC+=pv;}
+    let cumsum=0,covM=null,covCum=0,nextM=null,nextPv=0;
     for(const m of months){
       const pv=plan[m]||0;
       if(!pv) continue;
       cumsum+=pv;
-      if(m<=lastClosed) cumPlanLC=cumsum;
       if(cumsum<=ytd){covM=m;covCum=cumsum;}
       else{if(!nextM){nextM=m;nextPv=pv;} break;}
     }
@@ -865,12 +866,13 @@ function renderCoberturaProyectada(d,sid){
     const efectivo=ytd+lineal+legacy;
     const plan=row.plan_tpv||{};
 
-    let cumsum=0,covM=null,covCum=0,nextM=null,nextPv=0,cumPlanLC=0;
+    let cumPlanLC=0;
+    for(const m of months){const pv=plan[m]||0;if(m>lastClosed)break;cumPlanLC+=pv;}
+    let cumsum=0,covM=null,covCum=0,nextM=null,nextPv=0;
     for(const m of months){
       const pv=plan[m]||0;
       if(!pv) continue;
       cumsum+=pv;
-      if(m<=lastClosed) cumPlanLC=cumsum;
       if(cumsum<=efectivo){covM=m;covCum=cumsum;}
       else{if(!nextM){nextM=m;nextPv=pv;} break;}
     }
