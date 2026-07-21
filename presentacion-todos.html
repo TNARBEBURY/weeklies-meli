@@ -793,16 +793,18 @@ function renderCobertura(d,sid){
       else{if(!nextM){nextM=m;nextPv=pv;} break;}
     }
     const gap=nextM?(covCum+nextPv-ytd):null;
-    const exced=ytd-covCum;
     const gapToLC=Math.max(0,cumPlanLC-ytd);
+    const isPast=(!covM||covM<lastClosed);
+    const planDisplay=isPast?cumPlanLC:covCum;
+    const excedDisplay=isPast?(ytd-cumPlanLC):(ytd-covCum);
     totYtd+=ytd;
     totRows++;
     tbody+='<tr>'+
       '<td style="font-weight:700">'+row.hunter.split(' ')[0]+' '+row.hunter.split(' ').slice(1).join(' ')+'</td>'+
       '<td style="text-align:right;font-weight:700;color:#1565c0">'+fmtM(ytd)+'</td>'+
       '<td style="text-align:center">'+coverageBadge(covM,gapToLC)+'</td>'+
-      '<td style="text-align:right;color:#555">'+fmtM(covCum)+'</td>'+
-      '<td style="text-align:right;color:#00A650;font-weight:700">'+fmtM(exced)+'</td>'+
+      '<td style="text-align:right;color:#555">'+fmtM(planDisplay)+'</td>'+
+      '<td style="text-align:right;font-weight:700;color:'+( excedDisplay>=0?'#00A650':'#e53935')+'">'+fmtM(excedDisplay)+'</td>'+
       '<td style="text-align:right;color:#e53935">'+( gap!=null?'<span style="font-weight:700">'+fmtM(gap)+'</span>':'<span style="color:#6a1b9a;font-weight:700">Año cubierto ✓</span>')+'</td>'+
     '</tr>';
   }
@@ -877,8 +879,10 @@ function renderCoberturaProyectada(d,sid){
       else{if(!nextM){nextM=m;nextPv=pv;} break;}
     }
     const gap=nextM?(covCum+nextPv-efectivo):null;
-    const exced=efectivo-covCum;
     const gapToLC=Math.max(0,cumPlanLC-efectivo);
+    const isPast=(!covM||covM<lastClosed);
+    const planDisplay=isPast?cumPlanLC:covCum;
+    const excedDisplay=isPast?(efectivo-cumPlanLC):(efectivo-covCum);
 
     tbody+='<tr>'+
       '<td style="font-weight:700">'+row.hunter+'</td>'+
@@ -886,7 +890,7 @@ function renderCoberturaProyectada(d,sid){
       '<td style="text-align:right;color:var(--green)">'+fmtM(lineal)+(legacy>0?'<br><span style="font-size:10px;color:#888">+leg '+fmtM(legacy)+'</span>':'')+'</td>'+
       '<td style="text-align:right;font-weight:900;color:#1565c0">'+fmtM(efectivo)+'</td>'+
       '<td style="text-align:center">'+coverageBadge(covM,gapToLC)+'</td>'+
-      '<td style="text-align:right;color:#00A650;font-weight:700">'+fmtM(exced)+'</td>'+
+      '<td style="text-align:right;font-weight:700;color:#555">'+fmtM(planDisplay)+'</td>'+
       '<td style="text-align:right;color:#e53935">'+( gap!=null?'<span style="font-weight:700">'+fmtM(gap)+'</span>':'<span style="color:#6a1b9a;font-weight:700">Año cubierto ✓</span>')+'</td>'+
     '</tr>';
   }
